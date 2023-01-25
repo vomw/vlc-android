@@ -24,6 +24,7 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import androidx.core.net.toUri
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
@@ -50,14 +51,14 @@ open class FileBrowserProvider(
         private val showDummyCategory: Boolean = true, sort:Int, desc:Boolean) : BrowserProvider(context, dataset,
         url, sort, desc), Observer<MutableList<UsbDevice>> {
 
-    private var storagePosition = -1
-    private var otgPosition = -1
-
     init {
         fetch()
     }
 
     private lateinit var storageObserver : Observer<Boolean>
+
+    // list of mounted storage devices
+    private var cachedStorage: List<String> = ArrayList()
 
     override suspend fun browseRootImpl() {
         loading.postValue(true)
@@ -66,22 +67,44 @@ open class FileBrowserProvider(
         val browserStorage = context.getString(R.string.browser_storages)
         val storages = DirectoryRepository.getInstance(context).getMediaDirectories()
         val devices = mutableListOf<MediaLibraryItem>()
+        var otgAdded = false
+        cachedStorage = storages.toList()
+        // list of readable device keys, that would not go through OTG
+        val readableDeviceKeys = storages.filter { File(it).canRead() }
+                .map { it.substringAfterLast('/') }.toList()
         if (!filePicker && showDummyCategory) devices.add(DummyItem(browserStorage))
         for (mediaDirLocation in storages) {
             val file = File(mediaDirLocation)
-            if (!file.exists() || !file.canRead()) continue
+            // a genuine removable device is exposed as a raw /mnt/media_rw/<uuid> mount,
+            val isRemovableRawMount = mediaDirLocation.startsWith("/mnt/media_rw/")
+            if ((!file.exists() || !file.canRead()) && !isRemovableRawMount) continue
             storageAccess = true
             val directory = MLServiceLocator.getAbstractMediaWrapper(AndroidUtil.PathToUri(mediaDirLocation))
             directory.type = MediaWrapper.TYPE_DIR
             if (AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY == mediaDirLocation) {
                 directory.setDisplayTitle(internalmemoryTitle)
-                storagePosition = devices.size
+                devices.add(directory)
             } else {
                 val deviceName = FileUtils.getStorageTag(directory.title)
                 if (deviceName != null) directory.setDisplayTitle(deviceName)
                 directory.addStateFlags(MediaLibraryItem.FLAG_STORAGE)
+                val deviceKey = mediaDirLocation.substringAfterLast('/')
+                when {
+                    // readable: mount it
+                    file.canRead() -> devices.add(directory)
+                    // unreadable, fallback to OTG
+                    isRemovableRawMount && deviceKey !in readableDeviceKeys
+                            && !otgAdded && VlcMigrationHelper.isLolliPopOrLater
+                            && !ExternalMonitor.devices.isEmpty() -> {
+                        val otg = MLServiceLocator.getAbstractMediaWrapper("otg://".toUri()).apply {
+                            title = context.getString(R.string.otg_device_title)
+                            type = MediaWrapper.TYPE_DIR
+                        }
+                        devices.add(otg)
+                        otgAdded = true
+                    }
+                }
             }
-            devices.add(directory)
         }
         if (AndroidUtil.isMarshMallowOrLater && !storageAccess) {
             storageObserver = Observer { if (it == true) launch { browseRoot() } }
@@ -92,14 +115,6 @@ open class FileBrowserProvider(
             loading.postValue(false)
             dataset.value = arrayListOf()
             return
-        }
-        if (VlcMigrationHelper.isLolliPopOrLater && !ExternalMonitor.devices.isEmpty()) {
-            val otg = MLServiceLocator.getAbstractMediaWrapper("otg://".toUri()).apply {
-                title = context.getString(R.string.otg_device_title)
-                type = MediaWrapper.TYPE_DIR
-            }
-            otgPosition = devices.size
-            devices.add(otg)
         }
         dataset.value = devices
         // observe devices & favorites
@@ -166,18 +181,17 @@ open class FileBrowserProvider(
     }
 
     override fun onChanged(list: MutableList<UsbDevice>) {
-        if (list.isNullOrEmpty()) {
-            if (otgPosition != -1) {
-                dataset.remove(otgPosition)
-                otgPosition = -1
+        // there may be time between usb detection and mount
+        launch {
+            repeat(20) {
+                val storages = DirectoryRepository.getInstance(context).getMediaDirectories()
+                if (cachedStorage.size == storages.size) {
+                    delay(500)
+                } else {
+                    browseRoot()
+                    return@launch
+                }
             }
-        } else if (otgPosition == -1) {
-            val otg = MLServiceLocator.getAbstractMediaWrapper("otg://".toUri()).apply {
-                title = context.getString(R.string.otg_device_title)
-                type = MediaWrapper.TYPE_DIR
-            }
-            otgPosition = storagePosition+1
-            dataset.add(otgPosition, otg)
         }
     }
 }

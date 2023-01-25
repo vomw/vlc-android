@@ -39,6 +39,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.medialibrary.media.MediaWrapperImpl
@@ -397,6 +398,7 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
                     invalidateActionMode()
                 }
             } else {
+                var otgItem: MediaWrapper? = null
                 if (item.itemType == MediaLibraryItem.TYPE_MEDIA) {
                     if ("otg://" == item.location) {
                         val rootUri = OtgAccess.otgRoot.value
@@ -405,10 +407,13 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
                             requireActivity().requestOtgRoot()
                             return
                         }
+                        otgItem = MLServiceLocator.getAbstractMediaWrapper(rootUri).apply {
+                            type = MediaWrapper.TYPE_DIR
+                        }
                     }
                 }
                 val intent = Intent(requireActivity().applicationContext, SecondaryActivity::class.java)
-                intent.putExtra(KEY_MEDIA, item)
+                intent.putExtra(KEY_MEDIA, otgItem ?: item)
                 intent.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
                 startActivity(intent)
             }
