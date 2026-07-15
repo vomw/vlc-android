@@ -411,7 +411,7 @@
     <string name="force_play_all_audio_summary">Play all audio, starting with the one you clicked on</string>
     <string name="force_play_all_title">Video playlist mode</string>
     <string name="force_play_all_audio_title">Audio playlist mode</string>
-    <string name="save_brightness_summary">Keep brightness level between media</string>
+    <string name="save_brightness_summary">Keep the brightness level between videos</string>
     <string name="save_brightness_title">Save brightness level</string>
     <string name="save_audiodelay_summary">Save individual audio delay for each video</string>
     <string name="save_audiodelay_title">Save audio delay</string>
@@ -437,7 +437,7 @@
     <string name="enable_double_tap_play_summary">Double tap on screen center to play or pause</string>
     <string name="enable_swipe_seek_title">Swipe to seek</string>
     <string name="enable_swipe_seek_summary">Swipe your finger across the screen to seek</string>
-    <string name="enable_scale_gesture_title">Two finger zoom</string>
+    <string name="enable_scale_gesture_title">Two-finger zoom</string>
     <string name="enable_scale_gesture_summary">Zoom in and out with two fingers</string>
     <string name="popup_keepscreen_title">Keep screen ON in Pop-Up mode</string>
     <string name="popup_keepscreen_summary">Always keep screen ON while Pop-Up is displayed, even if video is paused.</string>
@@ -491,16 +491,16 @@
     <string name="subtitles_yellow_background">Yellow with background</string>
 
     <string name="audio_prefs_category">Audio</string>
-    <string name="lockscreen_cover_title">Media cover on Lockscreen</string>
-    <string name="lockscreen_cover_summary">When available, set the current media cover art as lockscreen wallpaper</string>
+    <string name="lockscreen_cover_title">Media cover on the lock screen</string>
+    <string name="lockscreen_cover_summary">When available, set the current media cover art as the lock screen wallpaper</string>
     <string name="show_seek_in_compact_notif_title">Seek buttons in notification panel</string>
     <string name="show_seek_in_compact_notif_summary">Show rewind and fast forward buttons in compact media controls</string>
-    <string name="list_title_ellipsize">Single line list title ellipsize</string>
+    <string name="list_title_ellipsize">Single-line list title overflow</string>
     <string name="list_title_ellipsize_default">Default</string>
-    <string name="list_title_ellipsize_left">Left</string>
-    <string name="list_title_ellipsize_right">Right</string>
+    <string name="list_title_ellipsize_left">Start</string>
+    <string name="list_title_ellipsize_right">End</string>
     <string name="list_title_ellipsize_middle">Middle</string>
-    <string name="list_title_ellipsize_marquee">Marquee</string>
+    <string name="list_title_ellipsize_marquee">Scrolling text</string>
     <string name="audio_boost_title">Audio-boost</string>
     <string name="audio_boost_summary">Allow volume up to 200%</string>
     <string name="headset_prefs_category">Headset</string>
@@ -774,7 +774,7 @@
     <string name="extension_empty">No item to display, go to your extension settings to get some.</string>
 
     <string name="opengl_title">OpenGL ES2 usage</string>
-    <string name="opengl_summary">By default, OpenGL ES2 is used for software decoding and hardware decoding when needed (360° videos)</string>
+    <string name="opengl_summary">By default, the OpenGL ES2 video output is used for software-decoded video and, when needed, for hardware-decoded video such as 360° content.</string>
     <string name="opengl_automatic">Automatic</string>
     <string name="opengl_on">Force On</string>
     <string name="opengl_off">Force Off</string>
