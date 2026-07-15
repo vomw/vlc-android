@@ -663,7 +663,7 @@
     <string name="no_internet_connection">Check your internet connection</string>
     <string name="retry">Retry</string>
     <string name="open_subs_download_error">OpenSubtitles is currently unavailable. Please try again later</string>
-    <string name="open_subs_download_link_error">There is an issue with OpenSubtitles. Please try again later</string>
+    <string name="open_subs_download_link_error">OpenSubtitles could not provide a download link. Please try again later.</string>
 
     <string name="network_browsing">Local Network</string>
     <string name="browsing">Browsing</string>
@@ -788,9 +788,9 @@
     <string name="popup_expand">Open in the full-screen player</string>
     <string name="download_subtitles">Download subtitles</string>
     <string name="powered_opensubtitles">Powered by OpenSubtitles</string>
-    <string name="open_subtitles_not_logged_in">You are not logged into OpenSubtitles\nLogging in will grant you access to more downloads</string>
+    <string name="open_subtitles_not_logged_in">You are not logged in to OpenSubtitles\nLog in to increase your download allowance</string>
     <string name="open_subtitles_logged_in">Logged in as %1$s</string>
-    <string name="open_subtitles_limits">You have %1$s remaining downloads out of %2$s. Your limit will be reset at %3$s.</string>
+    <string name="open_subtitles_limits">Remaining downloads: %1$s of %2$s. The limit resets at %3$s.</string>
     <string name="open_subtitles_vip">You are a VIP OpenSubtitles user</string>
     <string name="open_subtitles_register">Register</string>
     <string name="open_subtitles_log_out">Log out</string>
@@ -887,7 +887,7 @@
     <string name="subtitle_query_edit">Edit subtitle search query</string>
     <string name="subtitle_search_episode_hint">Episode</string>
     <string name="subtitle_search_season_hint">Season</string>
-    <string name="subtitles_download_failed">Failed to download</string>
+    <string name="subtitles_download_failed">Subtitle download failed.</string>
     <string name="language_to_download">Language</string>
     <string name="delete_the_selected">Delete selection</string>
     <string name="download_the_selected">Download selection</string>
@@ -1069,7 +1069,7 @@
     <string name="sub_result_by_name">Results for %s</string>
     <string name="sub_result_by_name_season">Season %s</string>
     <string name="sub_result_by_name_episode">Episode %s</string>
-    <string name="sub_result_by_name_hearing_impaired">Only hearing impaired</string>
+    <string name="sub_result_by_name_hearing_impaired">Only SDH subtitles</string>
 
     <string name="sub_result_by_file">Results for your file</string>
     <string name="donate">Help VLC</string>
