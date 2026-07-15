@@ -597,9 +597,9 @@
     <string name="advanced_prefs_category">Advanced</string>
     <string name="auto_rescan">Auto rescan</string>
     <string name="auto_rescan_summary">Automatically scan device for new or deleted media at application startup</string>
-    <string name="dump_media_db">Dump media database</string>
-    <string name="dump_app_db">Dump app database</string>
-    <string name="dump_media_db_summary">Copy database to internal storage root</string>
+    <string name="dump_media_db">Export media database</string>
+    <string name="dump_app_db">Export app database</string>
+    <string name="dump_media_db_summary">Save database export to the root of shared storage</string>
     <string name="clear_media_db">Clear media database</string>
     <string name="clear_media_database_summary">Clears the database to start over</string>
     <string name="clear_app_data">Clear app data</string>
@@ -962,8 +962,8 @@
     <string name="persistent_incognito_mode_summary">Keep the incognito mode enabled even if the app is restarted</string>
     <string name="display_in_list">Display in list</string>
     <string name="display_in_grid">Display in grid</string>
-    <string name="dump_db_succes">Database dumped on internal storage root</string>
-    <string name="dump_db_failure">Failed to dump database</string>
+    <string name="dump_db_succes">Database export saved to the root of shared storage</string>
+    <string name="dump_db_failure">Failed to save database export</string>
     <string name="send_crash_title">VLC crash reporter</string>
     <string name="send_crash_description">By sending your crash, you will help us improve VLC stability.</string>
     <string name="send_crash_warning">Make sure you remove any sensitive data you don\'t want to send.</string>
@@ -1415,7 +1415,7 @@
     <string name="restore_settings_summary">Restore your settings from a previous export</string>
     <string name="restore_settings">Restore settings</string>
     <string name="obsolete_restore_settings">Your settings export is obsolete. Please export them again</string>
-    <string name="export_settings_success">Settings exported successfully to the internal storage root</string>
+    <string name="export_settings_success">Settings exported successfully to the root of shared storage</string>
     <string name="export_settings_failure">Something went wrong while exporting your settings</string>
 
     <string name="queue_info">Queue information</string>
