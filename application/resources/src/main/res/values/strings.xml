@@ -45,7 +45,7 @@
     <string name="medialibrary_scan">Media library scan</string>
     <string name="Medialibrary_progress">Media library scanning progress updates</string>
     <string name="ml_database_warning">Your database contains the list of all of your media. It will be shared with VLC\'s developers</string>
-    <string name="logs_warning">May contain info about your played media. It will be shared with VLC\'s developers</string>
+    <string name="logs_warning">Logs may contain information about media you have played. The logs will be shared with VLC\'s developers.</string>
     <string name="play_from_start">Play from start</string>
     <string name="play_as_audio">Play as audio</string>
     <string name="play_as_video">Play as video</string>
@@ -623,20 +623,21 @@
     <string name="browser_show_all_title">Show only multimedia files</string>
 
     <string name="developer_prefs_category">Developer</string>
-    <string name="enable_verbose_mode">Verbose</string>
+    <string name="enable_verbose_mode">Verbose logging</string>
     <string name="enable_verbose_mode_summary">Increase the verbosity (logcat)</string>
     <string name="debug_logs">Debug logs</string>
     <string name="start_logging">Start logging</string>
     <string name="stop_logging">Stop logging</string>
     <string name="clear_log">Clear log</string>
-    <string name="log_service_title">VLC logs recording</string>
+    <string name="log_service_title">Recording VLC logs</string>
     <string name="log_service_text">Open the log console</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="copied_to_clipboard">Copied log to clipboard.</string>
     <string name="copied_from_clipboard">Address pasted from your clipboard</string>
-    <string name="dump_logcat">Dump logcat log</string>
-    <string name="dump_logcat_success">Logcat successfully dumped to %1$s!</string>
-    <string name="dump_logcat_failure">Failed to dump logcat.</string>
+    <string name="dump_logcat">Save logcat log</string>
+    <string name="dump_logcat_success">Logcat log saved to %1$s.</string>
+    <string name="dump_logcat_failure">Failed to save logcat log.</string>
+    <string name="prepare_logs_failure">Failed to prepare log files.</string>
     <string name="http_user_agent">HTTP user agent</string>
     <string name="custom_libvlc_options">Custom libVLC options</string>
     <string name="custom_libvlc_options_invalid">Invalid libVLC options!</string>
