@@ -1170,8 +1170,8 @@
     <string name="network_indexing">Network indexing</string>
     <string name="network_indexing_warning">Network indexing is currently in beta.\nKnown issues:\n• Slow performance\n\nIf you encounter some other issues, please report them on our forum.</string>
     <string name="start_vlc">Start VLC</string>
-    <string name="jump_delay">Forward/backward time delay</string>
-    <string name="long_jump_delay">Long tap forward/backward time delay</string>
+    <string name="jump_delay">Forward/backward seek interval</string>
+    <string name="long_jump_delay">Long-press forward/backward seek interval</string>
     <string name="jump_delay_summary">%s seconds</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
@@ -1209,8 +1209,8 @@
     <string name="controls_setting">Controls settings</string> <!-- Unused -->
     <string name="gestures">Gestures</string>
     <string name="player_controls">Player controls</string>
-    <string name="video_double_tap_jump_delay">Double tap time delay</string>
-    <string name="video_key_jump_delay">Navigation keys time delay</string>
+    <string name="video_double_tap_jump_delay">Double-tap seek interval</string>
+    <string name="video_key_jump_delay">Navigation-key seek interval</string>
     <string name="banned">Banned folder (long tap to change)</string>
     <string name="banned_tv">Banned folder</string>
     <string name="banned_parent">Banned by parent folder</string>
@@ -1254,10 +1254,10 @@
     <string name="widget_foreground">Foreground</string>
     <string name="configure_widget">Widget configuration</string>
     <string name="widget_preview">Widget preview</string>
-    <string name="widget_forward_delay">Forward time delay</string>
+    <string name="widget_forward_delay">Forward seek interval</string>
     <string name="widget_show_seek">Show seek buttons</string>
     <string name="widget_show_cover">Show cover</string>
-    <string name="widget_rewind_delay">Backward time delay</string>
+    <string name="widget_rewind_delay">Backward seek interval</string>
     <string name="widget_show_configure">Show configuration icon</string>
     <string name="widget_show_configure_summary">Even if it\'s not shown, you can tap the upper right corner to open the configuration</string>
     <string name="seek_backward_content_description">Seek %s seconds backwards</string>
