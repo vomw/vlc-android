@@ -354,11 +354,11 @@
 
     <string name="directories_summary">Select directories to include in the media library</string>
     <string name="add_custom_path">Add a custom path</string>
-    <string name="add_custom_path_description">Enter additional custom directory to scan:</string>
+    <string name="add_custom_path_description">Enter the path of an additional directory to scan:</string>
     <string name="remove_custom_path">Remove custom path</string>
-    <string name="group_ban_folder">Ban folder from media library</string>
-    <string name="ban_folder">Ban folder</string>
-    <string name="ban_folder_explanation">Banning this folder means that you won\'t see its media in the video or audio section of the app, though they will still be accessible from the browser.\nTo unban it, go to the settings, %s and long tap this folder.</string>
+    <string name="group_ban_folder">Exclude folder from media library</string>
+    <string name="ban_folder">Exclude folder</string>
+    <string name="ban_folder_explanation">Excluding this folder hides its media from the app\'s video and audio sections, but the folder remains available in the browser.\nTo include it again, go to Settings > %s and long-press the folder.</string>
 
     <string name="hardware_acceleration">Hardware Acceleration</string>
     <string name="hardware_acceleration_summary">Disabled: better stability\nDecoding: may improve performance\nFull: may improve performance further</string>
@@ -1211,9 +1211,9 @@
     <string name="player_controls">Player controls</string>
     <string name="video_double_tap_jump_delay">Double-tap seek interval</string>
     <string name="video_key_jump_delay">Navigation-key seek interval</string>
-    <string name="banned">Banned folder (long tap to change)</string>
-    <string name="banned_tv">Banned folder</string>
-    <string name="banned_parent">Banned by parent folder</string>
+    <string name="banned">Excluded from media library (long-press to change)</string>
+    <string name="banned_tv">Excluded from media library</string>
+    <string name="banned_parent">Excluded because the parent folder is excluded from the media library</string>
     <plurals name="duplicate_two_options_secondary">
         <item quantity="one">This item is already in \"%s\" playlist.</item>
         <item quantity="other">These items are already in \"%s\" playlist.</item>
