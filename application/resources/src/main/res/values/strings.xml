@@ -1146,8 +1146,8 @@
     <string name="lock_with_pin_short">PIN lock</string>
     <string name="restrict_settings">Restrict settings access</string>
     <string name="search_prefs">Search settings</string>
-    <string name="video_match_frame_rate_title">Match Display Frame Rate</string>
-    <string name="video_match_frame_rate_summary">Match display refresh rate to media frame rate. For example, a 24p film should play at 24p</string>
+    <string name="video_match_frame_rate_title">Match display refresh rate</string>
+    <string name="video_match_frame_rate_summary">Match the display refresh rate to the media frame rate. For example, play a 24 fps film at a 24 Hz refresh rate.</string>
     <string name="preferred_resolution">Preferred video resolution</string>
     <string name="preferred_resolution_summary">Maximum video quality for streams, when applicable, will be: %s</string>
     <string name="pref_resolution_best_available">Best available</string>
@@ -1190,7 +1190,7 @@
     <string name="add_new_only_button">Add new only</string>
     <string name="discovery_failed">Discovery failed for: %s</string>
     <string name="lock_use_sensor_title">Lock with sensor</string>
-    <string name="lock_use_sensor_summary">When the orientation is locked, use the sensor to allow the reverse orientation</string>
+    <string name="lock_use_sensor_summary">When orientation is locked, use the sensor to allow its corresponding reverse orientation</string>
     <string name="start">Start</string>
     <string name="notification_permission">Notification permission</string>
     <string name="notification_permission_explanation">VLC needs your permission to send notifications.\nThe app will only notify you when scanning your media or using the custom video Picture in Picture.\nRefusing it won\'t prevent VLC to work, however the notifications will be hidden.</string>
@@ -1227,7 +1227,7 @@
     <string name="player_under_notch">Display video under notch</string>
     <string name="notch">Notch</string>
     <string name="always_fast_seek">Always use fast seek</string>
-    <string name="always_fast_seek_summary">Seek is faster but may be less precise</string>
+    <string name="always_fast_seek_summary">Seeking is faster but may be less precise</string>
     <string name="touch_only">Touch only feature</string>
     <string name="touch_only_description">Switching to the mobile interface can only be done with a tactile screen or a mouse.\nPlease slide below to verify that this feature is safe to change.</string>
     <string name="no_web_browser">No web browser installed</string>
@@ -1413,8 +1413,8 @@
     <string name="metered_connection">Action for streams when the connection is metered</string>
     <string name="metered_do_nothing">Do nothing</string>
     <string name="metered_stop">Stop playback</string>
-    <string name="metered_warn">Warn me (the warning may be missed for audio playback)</string>
-    <string name="metered_connection_stopped">Media stopped because the connection is metered</string>
+    <string name="metered_warn">Warn me (you may not notice the warning during audio playback)</string>
+    <string name="metered_connection_stopped">Playback stopped because the connection is metered</string>
     <string name="metered_connection_warning">Your connection is metered. Fees may apply.</string>
     <string name="adding">Adding</string>
     <string name="to">to</string>
@@ -1442,7 +1442,7 @@
     <string name="queue_format">Queue format</string>
     <string name="queue_format_short_desc">Queue position</string>
     <string name="queue_format_long_desc">Queue position / Queue size</string>
-    <string name="video_settings_disclaimer">Some settings have been moved to the video controls settings in the video player.</string>
+    <string name="video_settings_disclaimer">Some settings have moved to the Controls settings in the video player.</string>
     <string name="get_help">Get some help</string>
     <string name="feedback_type">Feedback type</string>
     <string name="how_to_use">Learn how to use</string>
