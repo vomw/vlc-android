@@ -50,10 +50,10 @@
     <string name="play_as_audio">Play as audio</string>
     <string name="play_as_video">Play as video</string>
     <string name="return_to_video">Long tap the cover to restore the video</string>
-    <string name="video_app_switch_title">Background/PiP mode</string>
-    <string name="video_app_switch_summary">Select VLC behavior when you switch to other application from video playback</string>
-    <string name="play_pip_title">Play videos in Picture-in-picture mode</string>
-    <string name="play_as_audio_background">Play videos in background</string>
+    <string name="video_app_switch_title">Behavior when switching apps</string>
+    <string name="video_app_switch_summary">Choose how VLC behaves when you switch to another app during video playback.</string>
+    <string name="play_pip_title">Play videos in picture-in-picture mode</string>
+    <string name="play_as_audio_background">Play videos in the background</string>
     <string name="append">Add to play queue</string>
     <string name="insert_next">Insert next</string>
     <string name="play_all">Play all</string>
