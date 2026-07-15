@@ -49,13 +49,13 @@
     <string name="play_from_start">Play from start</string>
     <string name="play_as_audio">Play as audio</string>
     <string name="play_as_video">Play as video</string>
-    <string name="return_to_video">Long tap the cover to restore the video</string>
+    <string name="return_to_video">Touch and hold the cover to return to video playback</string>
     <string name="video_app_switch_title">Behavior when switching apps</string>
     <string name="video_app_switch_summary">Choose how VLC behaves when you switch to another app during video playback.</string>
     <string name="play_pip_title">Play videos in picture-in-picture mode</string>
     <string name="play_as_audio_background">Play videos in the background</string>
     <string name="append">Add to play queue</string>
-    <string name="insert_next">Insert next</string>
+    <string name="insert_next">Play next</string>
     <string name="play_all">Play all</string>
     <string name="append_all">Append all</string>
     <string name="resume_playback_short_title">Resume playback</string>
@@ -312,15 +312,15 @@
     <string name="tips_swipe_horizontal">Swipe left or right</string>
     <string name="tips_playlist">Playlist</string>
     <string name="tips_hold_seek">Hold to seek</string>
-    <string name="tips_long_drop">Long press and drop</string>
+    <string name="tips_long_drop">Long press, drag, and drop</string>
     <string name="pause_description">Double tap to pause</string>
     <string name="seek_tap">+/- 10 sec.</string>
     <string name="seek_tap_description">Double tap to go 10 sec forward or backward</string>
     <string name="close">Close</string>
 
     <string name="playlist_tips">Playlist tips</string>
-    <string name="remove_song">Remove song</string>
-    <string name="remove_playlist_item">%1$s has been dismissed from playlist</string>
+    <string name="remove_song">Remove item</string>
+    <string name="remove_playlist_item">%1$s was removed from the playlist</string>
     <string name="rearrange_order">Rearrange order</string>
     <string name="hold_to_seek">Hold to seek</string>
 
@@ -785,7 +785,7 @@
     <string name="add_to_playlist">Add to playlist</string>
     <string name="popup_playback_title">Play video in a Pop-Up window</string>
     <string name="popup_playback">Playing in a Pop-Up window</string>
-    <string name="popup_expand">Expand video</string>
+    <string name="popup_expand">Open in the full-screen player</string>
     <string name="download_subtitles">Download subtitles</string>
     <string name="powered_opensubtitles">Powered by OpenSubtitles</string>
     <string name="open_subtitles_not_logged_in">You are not logged into OpenSubtitles\nLogging in will grant you access to more downloads</string>
