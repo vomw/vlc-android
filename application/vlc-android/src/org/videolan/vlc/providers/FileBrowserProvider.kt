@@ -38,6 +38,7 @@ import org.videolan.tools.livedata.LiveDataset
 import org.videolan.vlc.ExternalMonitor
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.gui.helpers.hf.OTG_SCHEME
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
 import org.videolan.vlc.gui.helpers.hf.getDocumentFiles
 import org.videolan.vlc.repository.DirectoryRepository
@@ -67,7 +68,6 @@ open class FileBrowserProvider(
         val browserStorage = context.getString(R.string.browser_storages)
         val storages = DirectoryRepository.getInstance(context).getMediaDirectories()
         val devices = mutableListOf<MediaLibraryItem>()
-        var otgAdded = false
         cachedStorage = storages.toList()
         // list of readable device keys, that would not go through OTG
         val readableDeviceKeys = storages.filter { File(it).canRead() }
@@ -94,14 +94,13 @@ open class FileBrowserProvider(
                     file.canRead() -> devices.add(directory)
                     // unreadable, fallback to OTG
                     isRemovableRawMount && deviceKey !in readableDeviceKeys
-                            && !otgAdded && VlcMigrationHelper.isLolliPopOrLater
+                            && VlcMigrationHelper.isLolliPopOrLater
                             && !ExternalMonitor.devices.isEmpty() -> {
-                        val otg = MLServiceLocator.getAbstractMediaWrapper("otg://".toUri()).apply {
-                            title = context.getString(R.string.otg_device_title)
+                        val otg = MLServiceLocator.getAbstractMediaWrapper("$OTG_SCHEME://$deviceKey".toUri()).apply {
+                            title = deviceName?.let { "OTG - $it" } ?: context.getString(R.string.otg_device_title)
                             type = MediaWrapper.TYPE_DIR
                         }
                         devices.add(otg)
-                        otgAdded = true
                     }
                 }
             }
@@ -133,12 +132,13 @@ open class FileBrowserProvider(
     }
 
     override fun browse(url: String?) {
+        val uri = url?.toUri()
         when {
-            url == "otg://" || url?.startsWith("content:") == true -> launch {
+            uri?.scheme == OTG_SCHEME || uri?.scheme == "content" -> launch {
                 loading.postValue(true)
                 dataset.value = withContext(coroutineContextProvider.IO) {
                     @Suppress("UNCHECKED_CAST")
-                    getDocumentFiles(context, url.toUri().path?.substringAfterLast(':') ?: "") as? MutableList<MediaLibraryItem> ?: mutableListOf()
+                    getDocumentFiles(context, uri!!) as? MutableList<MediaLibraryItem> ?: mutableListOf()
                 }
                 loading.postValue(false)
             }
@@ -148,14 +148,14 @@ open class FileBrowserProvider(
     }
 
     suspend fun browseByUrl(url: String): List<MediaWrapper> {
+        val uri = url.toUri()
         return when {
-            url == "otg://" || url.startsWith("content:") -> {
+            uri.scheme == OTG_SCHEME || uri.scheme == "content" -> {
                 val result = ArrayList<MediaWrapper>()
                 launch {
                     val files = withContext(coroutineContextProvider.IO) {
                         @Suppress("UNCHECKED_CAST")
-                        getDocumentFiles(context, url.toUri().path?.substringAfterLast(':')
-                                ?: "") as? MutableList<MediaLibraryItem> ?: mutableListOf()
+                        getDocumentFiles(context, uri) as? MutableList<MediaLibraryItem> ?: mutableListOf()
                     }.map { it as MediaWrapper }
 
                     result.addAll(files.filter { it.itemType == MediaWrapper.TYPE_MEDIA })
