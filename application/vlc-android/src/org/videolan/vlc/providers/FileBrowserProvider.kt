@@ -185,7 +185,7 @@ open class FileBrowserProvider(
         launch {
             repeat(20) {
                 val storages = DirectoryRepository.getInstance(context).getMediaDirectories()
-                if (cachedStorage.size == storages.size) {
+                if (cachedStorage == storages) {
                     delay(500)
                 } else {
                     browseRoot()
