@@ -413,6 +413,7 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
                         }
                         otgItem = MLServiceLocator.getAbstractMediaWrapper(rootUri).apply {
                             type = MediaWrapper.TYPE_DIR
+                            title = item.title
                         }
                     }
                 }
