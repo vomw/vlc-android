@@ -71,7 +71,7 @@ open class FileBrowserProvider(
         cachedStorage = storages.toList()
         // list of readable device keys, that would not go through OTG
         val readableDeviceKeys = storages.filter { File(it).canRead() }
-                .map { it.substringAfterLast('/') }.toList()
+                .map { it.substringAfterLast('/') }
         if (!filePicker && showDummyCategory) devices.add(DummyItem(browserStorage))
         for (mediaDirLocation in storages) {
             val file = File(mediaDirLocation)
