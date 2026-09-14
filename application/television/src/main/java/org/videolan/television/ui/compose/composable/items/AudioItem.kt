@@ -1,0 +1,757 @@
+/*
+ * ************************************************************************
+ *  AudioItem.kt
+ * *************************************************************************
+ * Copyright © 2025 VLC authors and VideoLAN
+ * Author: Nicolas POMEPUY
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ *
+ *
+ */
+
+package org.videolan.television.ui.compose.composable.items
+
+import android.graphics.Bitmap
+import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import org.videolan.medialibrary.interfaces.media.Artist
+import org.videolan.medialibrary.interfaces.media.Genre
+import org.videolan.medialibrary.interfaces.media.MediaWrapper
+import org.videolan.medialibrary.media.DummyItem
+import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.medialibrary.stubs.StubArtist
+import org.videolan.medialibrary.stubs.StubGenre
+import org.videolan.resources.CATEGORY_SONGS
+import org.videolan.resources.HEADER_ADD_STREAM
+import org.videolan.television.R
+import org.videolan.television.ui.compose.composable.components.InvalidationComposable
+import org.videolan.television.ui.compose.composable.components.ItemOptions
+import org.videolan.television.ui.compose.composable.components.MiniVisualizer
+import org.videolan.television.ui.compose.theme.BlackTransparent50
+import org.videolan.television.ui.compose.theme.BlackTransparent70
+import org.videolan.television.ui.compose.theme.Transparent
+import org.videolan.television.ui.compose.theme.WhiteTransparent10
+import org.videolan.television.ui.compose.theme.WhiteTransparent25
+import org.videolan.television.ui.compose.theme.WhiteTransparent70
+import org.videolan.television.ui.compose.utils.VlcPreview
+import org.videolan.television.ui.compose.utils.fadingMarquee
+import org.videolan.television.ui.compose.utils.getDescriptionAnnotated
+import org.videolan.television.ui.compose.utils.inlineContentMap
+import org.videolan.television.util.FAVORITE_FLAG
+import org.videolan.vlc.gui.helpers.getTvIconRes
+import org.videolan.vlc.media.PlaylistManager
+import org.videolan.vlc.util.MediaListEntry
+import org.videolan.vlc.util.ThumbnailsProvider
+import org.videolan.vlc.viewmodels.PlaylistModel
+
+@Composable
+fun AudioItem(
+    audios: List<MediaLibraryItem>,
+    entry: MediaListEntry,
+    index: Int,
+    modifier: Modifier = Modifier,
+    inCard: Boolean = true,
+    isFirst: Boolean = false,
+    isLast: Boolean = false,
+    spannableDescription: Boolean = false,
+    browserRoot: Boolean = false,
+    containerColor: Color? = null,
+    onClick: () -> Unit
+) {
+    if (inCard)
+        AudioItemCard(
+            audios[index],
+            index,
+            entry,
+            modifier = modifier,
+            spannableDescription = spannableDescription,
+            browserRoot = browserRoot,
+            containerColor = containerColor,
+            onClick = onClick
+        )
+    else
+        AudioItemList(
+            item = audios[index],
+            position = index,
+            entry = entry,
+            modifier = modifier,
+            isFirst = isFirst,
+            isLast = isLast,
+            spannableDescription = spannableDescription,
+            containerColor = containerColor,
+            onClick = onClick
+        )
+}
+
+@Composable
+fun AudioItemCard(
+    item: MediaLibraryItem,
+    position: Int,
+    entry: MediaListEntry,
+    modifier: Modifier = Modifier,
+    initialFocused: Boolean = false,
+    spannableDescription: Boolean = false,
+    browserRoot: Boolean = false,
+    description: String? = null,
+    containerColor: Color? = null,
+    topStartContent: @Composable (BoxScope.() -> Unit)? = null,
+    onClick: () -> Unit
+) {
+    val mapBitmap: MutableState<Pair<MediaLibraryItem, Bitmap?>?> = remember { mutableStateOf(null) }
+    val coroutineScope = rememberCoroutineScope()
+    var focused by remember { mutableStateOf(initialFocused) }
+    if (item != mapBitmap.value?.first) mapBitmap.value = null
+    var expanded by remember { mutableStateOf(false) }
+
+    val animDuration = 180
+    val animEasing = FastOutSlowInEasing
+
+    // Pure GPU transform animations - NO layout measurement shifts so grid scroll never jumps!
+    val scale by animateFloatAsState(
+        targetValue = if (focused) 1.12f else 1.0f,
+        animationSpec = tween(durationMillis = animDuration, easing = animEasing),
+        label = "cardScale"
+    )
+    val shadowElevation by animateDpAsState(
+        targetValue = if (focused) 14.dp else 0.dp,
+        animationSpec = tween(durationMillis = animDuration, easing = animEasing),
+        label = "shadowElevation"
+    )
+    val shadowAlpha by animateFloatAsState(
+        targetValue = if (focused) 1f else 0f,
+        animationSpec = tween(durationMillis = animDuration, easing = animEasing),
+        label = "shadowAlpha"
+    )
+    val activeContainerColor by animateColorAsState(
+        targetValue = if (focused) (containerColor ?: MaterialTheme.colorScheme.surfaceVariant) else Transparent,
+        animationSpec = tween(durationMillis = animDuration, easing = animEasing),
+        label = "containerColor"
+    )
+    val outerBorderColor by animateColorAsState(
+        targetValue = if (focused) MaterialTheme.colorScheme.onSurface else Transparent,
+        animationSpec = tween(durationMillis = animDuration, easing = animEasing),
+        label = "outerBorderColor"
+    )
+    val titleTextColor by animateColorAsState(
+        targetValue = if (focused) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = animDuration, easing = animEasing),
+        label = "titleTextColor"
+    )
+
+    val isRound = item is Artist || item is Genre
+    val outerShape = RoundedCornerShape(12.dp)
+
+    // Outer unscaled Box anchors focus and bringIntoView to fixed unscaled grid cell bounds
+    // so DPAD LEFT/RIGHT navigation across a row NEVER triggers unpredictable vertical scroll!
+    Box(
+        modifier = modifier
+            .zIndex(if (focused || scale > 1.001f) 100f else 0f)
+            .onFocusChanged {
+                focused = it.isFocused
+            }
+    ) {
+        if (shadowAlpha > 0f) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = shadowAlpha
+                    }
+                    .shadow(shadowElevation, outerShape)
+                    .background(containerColor ?: MaterialTheme.colorScheme.surfaceVariant, outerShape)
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .background(activeContainerColor, outerShape)
+                .border(
+                    border = if (outerBorderColor.alpha > 0.01f) BorderStroke(2.5.dp, outerBorderColor) else BorderStroke(0.dp, Transparent),
+                    shape = outerShape
+                )
+                .clip(outerShape)
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = { expanded = true },
+                    indication = null,
+                    interactionSource = null
+                )
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type == PointerEventType.Enter) focused = true
+                            if (event.type == PointerEventType.Exit) focused = false
+                            if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
+                                event.changes.forEach { e -> e.consume() }
+                                expanded = true
+                            }
+                        }
+                    }
+                },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val thumbShape = if (isRound) CircleShape else RoundedCornerShape(8.dp)
+                Box(
+                contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1F)
+                    .padding(if (isRound) 10.dp else 0.dp)
+                    .clip(thumbShape)
+                    .background(if (isRound) Transparent else (containerColor ?: MaterialTheme.colorScheme.surfaceVariant))
+                ) {
+                    if (mapBitmap.value?.second != null) {
+                        Image(
+                            bitmap = mapBitmap.value!!.second!!.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = getTvIconRes(item)),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(if (item.itemType == MediaLibraryItem.TYPE_DUMMY && item.id == HEADER_ADD_STREAM) MaterialTheme.colorScheme.primary else WhiteTransparent70),
+                            modifier = Modifier
+                                .padding(if (isRound) 12.dp else 24.dp)
+                                .fillMaxSize()
+                        )
+                        LaunchedEffect(key1 = item) {
+                            coroutineScope.launch {
+                                if (item !is DummyItem)
+                                    mapBitmap.value = Pair(item, ThumbnailsProvider.obtainBitmap(item = item, 320))
+                            }
+                        }
+                    }
+                    if (item is MediaWrapper && browserRoot)
+                        (if (item.type != MediaWrapper.TYPE_DIR && item.uri.scheme?.contains("file") == false) null else item.uri.scheme)?.let {
+                            Text(
+                                it, modifier = Modifier
+                                    .padding(8.dp)
+                                    .background(BlackTransparent70)
+                                    .padding(4.dp)
+                            )
+                        }
+                    if (item is MediaWrapper && item.type == MediaWrapper.TYPE_VIDEO && item.seen > 0) {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_check),
+                                contentDescription = stringResource(R.string.media_seen),
+                                modifier = Modifier
+                                    .background(BlackTransparent50, RoundedCornerShape(4.dp))
+                                    .padding(4.dp),
+                            )
+                        }
+                    }
+                    val isFavorite = item.isFavorite || (item as? MediaWrapper)?.hasFlag(FAVORITE_FLAG) == true
+                    if (isFavorite) {
+                        Icon(
+                            painterResource(R.drawable.ic_favorite),
+                            contentDescription = stringResource(R.string.favorite),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .background(BlackTransparent50, CircleShape)
+                                .padding(4.dp)
+                                .size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    if (topStartContent != null) {
+                        Box(modifier = Modifier.align(Alignment.TopStart)) {
+                            topStartContent()
+                        }
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        item.title ?: "",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = titleTextColor,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fadingMarquee(edgeWidth = 4.dp, marqueeOnlyOnFocus = true, isFocused = focused)
+                    )
+                    val context = LocalContext.current
+                    val finalDescription = if (isRound) {
+                        when (item) {
+                            is Artist -> context.resources.getQuantityString(org.videolan.vlc.R.plurals.albums_quantity, item.albumsCount, item.albumsCount)
+                            is Genre -> context.resources.getQuantityString(org.videolan.vlc.R.plurals.track_quantity, item.tracksCount, item.tracksCount)
+                            else -> description ?: item.description
+                        }
+                    } else description ?: item.description
+                    val annotatedDescription = if (spannableDescription) finalDescription.getDescriptionAnnotated() else AnnotatedString(finalDescription ?: "")
+                    if (annotatedDescription.isNotEmpty()) {
+                        Text(
+                            text = annotatedDescription,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fadingMarquee(edgeWidth = 4.dp, marqueeOnlyOnFocus = true, isFocused = focused)
+                        )
+                    }
+                }
+                if (expanded)
+                    ItemOptions(item, position, entry, onDismiss = {
+                        expanded = false
+                    })
+            }
+        }
+    }
+
+@Composable
+fun AudioItemList(
+    item: MediaLibraryItem,
+    position: Int,
+    entry: MediaListEntry,
+    modifier: Modifier = Modifier,
+    isFirst: Boolean = false,
+    isLast: Boolean = false,
+    spannableDescription: Boolean = false,
+    description: String? = null,
+    containerColor: Color? = null,
+    infoPartFocusRequester: FocusRequester? = null,
+    actionContent: @Composable (RowScope.() -> Unit)? = null,
+    onClick: () -> Unit
+) {
+    val mapBitmap: MutableState<Pair<MediaLibraryItem, Bitmap?>?> = remember { mutableStateOf(null) }
+    val coroutineScope = rememberCoroutineScope()
+    var itemHasFocus by remember { mutableStateOf(false) }
+    var infoPartHasFocus by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (itemHasFocus) 1.05f else 1f, label = "scale")
+    val baseCornerRadius = 12.dp
+    val topCornerRadius by animateDpAsState(if (itemHasFocus || isFirst) baseCornerRadius else 0.dp, label = "topCornerRadius")
+    val bottomCornerRadius by animateDpAsState(if (itemHasFocus || isLast) baseCornerRadius else 0.dp, label = "bottomCornerRadius")
+    val shape = RoundedCornerShape(topStart = topCornerRadius, topEnd = topCornerRadius, bottomStart = bottomCornerRadius, bottomEnd = bottomCornerRadius)
+
+    if (item != mapBitmap.value?.first) mapBitmap.value = null
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+            .zIndex(if (itemHasFocus) 1f else 0f)
+            .height(72.dp)
+            .onFocusChanged {
+                itemHasFocus = it.hasFocus
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 48.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .shadow(if (itemHasFocus) 12.dp else 0.dp, shape)
+                .border(if (itemHasFocus) 1.dp else 0.dp, WhiteTransparent10, shape)
+                .background(containerColor ?: MaterialTheme.colorScheme.surfaceVariant, shape)
+                .clip(shape)
+                .then(if (actionContent == null) Modifier.combinedClickable(
+                    onClick = onClick,
+                    onLongClick = {
+                        expanded = true
+                    },
+                    indication = null,
+                    interactionSource = null
+                ) else Modifier)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type == PointerEventType.Press &&
+                                event.buttons.isSecondaryPressed
+                            ) {
+                                event.changes.forEach { e -> e.consume() }
+                                expanded = true
+                            }
+                        }
+                    }
+                }
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .then(
+                            if (actionContent != null) Modifier
+                                .onFocusChanged { infoPartHasFocus = it.isFocused }
+                                .focusRequester(infoPartFocusRequester ?: remember { FocusRequester() })
+                                .combinedClickable(
+                                    onClick = onClick,
+                                    onLongClick = { expanded = true },
+                                    indication = null,
+                                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                                )
+                                .background(if (infoPartHasFocus) WhiteTransparent25 else Transparent, RoundedCornerShape(baseCornerRadius))
+                            else Modifier
+                        ),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        Card(
+                            shape = if (item is Artist) CircleShape else MaterialTheme.shapes.medium,
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                if (mapBitmap.value?.second != null) {
+
+                                    Image(
+                                        bitmap = mapBitmap.value!!.second!!.asImageBitmap(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = getTvIconRes(item)),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            .padding(8.dp)
+                                    )
+                                    LaunchedEffect(key1 = item) {
+                                        coroutineScope.launch {
+                                            if (item !is DummyItem)
+                                                mapBitmap.value = Pair(item, ThumbnailsProvider.obtainBitmap(item = item, 320))
+                                        }
+                                    }
+                                }
+                                if (item is MediaWrapper && item.type == MediaWrapper.TYPE_VIDEO && item.seen > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                            .align(Alignment.TopEnd)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.ic_check),
+                                            contentDescription = stringResource(R.string.media_seen),
+                                            modifier = Modifier
+                                                .background(BlackTransparent50, RoundedCornerShape(4.dp))
+                                                .padding(4.dp),
+                                        )
+                                    }
+                                }
+
+                                if (item is MediaWrapper) {
+                                    val currentMedia by PlaylistManager.currentPlayedMedia.observeAsState()
+                                    val isCurrent = currentMedia?.equals(item) == true
+                                    if (isCurrent) {
+                                        val playlistModel: PlaylistModel = viewModel()
+                                        InvalidationComposable(currentMedia?.tag) {
+                                            Box(
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .background(BlackTransparent50, RoundedCornerShape(4.dp)),
+                                                contentAlignment = Alignment.BottomCenter
+                                            ) {
+                                                MiniVisualizer(MaterialTheme.colorScheme.onSurface, playlistModel)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .weight(1f)
+                                .align(Alignment.CenterVertically)
+                        ) {
+                            Text(
+                                item.title ?: "",
+                                maxLines = 1,
+                                overflow = if (itemHasFocus) TextOverflow.Visible else TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (itemHasFocus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fadingMarquee(edgeWidth = 8.dp, marqueeOnlyOnFocus = true, isFocused = itemHasFocus)
+                            )
+                            val finalDescription = description ?: item.description
+                            val annotatedDescription = if (spannableDescription) finalDescription.getDescriptionAnnotated() else AnnotatedString(finalDescription ?: "")
+                            if (annotatedDescription.isNotEmpty()) {
+                                Text(
+                                    text = annotatedDescription,
+                                    maxLines = 1,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = if (itemHasFocus) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                                    inlineContent = if (spannableDescription) inlineContentMap else emptyMap()
+                                )
+                            }
+                        }
+                        if (item.isFavorite || (item as? MediaWrapper)?.hasFlag(FAVORITE_FLAG) == true) {
+                            Icon(
+                                painterResource(R.drawable.ic_favorite),
+                                contentDescription = stringResource(R.string.favorite),
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .size(16.dp),
+                                tint = if (itemHasFocus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                if (actionContent != null) {
+                    Row(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .fillMaxHeight()
+                            .graphicsLayer { alpha = if (itemHasFocus) 1f else 0f }
+                            .padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        actionContent()
+                    }
+                }
+            }
+        }
+    }
+    if (expanded)
+        ItemOptions(item, position, entry, onDismiss =  {
+            expanded = false
+        })
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemCardPreview() {
+    VlcPreview {
+        Box(modifier = Modifier.padding(32.dp).size(200.dp)) {
+            AudioItemCard(
+                item = DummyItem(1, "Song Title", "Artist Name - Album Name"),
+                position = 0,
+                entry = MediaListEntry.ALBUMS,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemCardGridPreview() {
+    val sampleItems = listOf(
+        DummyItem(1, "A Place of Peace and Beauty", "Ethereal Ephemera"),
+        DummyItem(2, "A really long album name to test the UI of VLC and see if it causes issues", "A long artist name to trigger marquee"),
+        DummyItem(3, "Archangel", "Mortified Rage"),
+        DummyItem(4, "Best Of 2017 - Sommerhits", "Various Artists")
+    )
+    VlcPreview {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(28.dp),
+            modifier = Modifier.padding(32.dp)
+        ) {
+            sampleItems.forEachIndexed { index, item ->
+                Box(modifier = Modifier.weight(1f)) {
+                    AudioItemCard(
+                        item = item,
+                        position = index,
+                        entry = MediaListEntry.ALBUMS,
+                        initialFocused = (index == 1),
+                        onClick = {}
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemCardLongTitlePreview() {
+    VlcPreview {
+        AudioItemCard(
+            item = DummyItem(1, "Very long song title that should probably marquee when focused", "Very long artist name that should also probably marquee or ellipsis"),
+            position = 0,
+            entry = MediaListEntry.ALBUMS,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemArtistCardPreview() {
+    VlcPreview {
+        AudioItemCard(
+            item = StubArtist(1, "Artist Name", "Artist Bio", null, null, 10, 50, 50, false),
+            position = 0,
+            entry = MediaListEntry.ARTISTS,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemPreview() {
+    VlcPreview {
+        AudioItem(
+            audios = listOf(DummyItem(1, "Song Title", "Artist Name - Album Name")),
+            entry = MediaListEntry.ALBUMS,
+            index = 0,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemGenreCardPreview() {
+    VlcPreview {
+        AudioItemCard(
+            item = StubGenre(1, "Rock", 125, 125, false),
+            position = 0,
+            entry = MediaListEntry.GENRES,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun AudioItemListPreview() {
+    VlcPreview {
+        Column(modifier = Modifier.padding(16.dp)) {
+            AudioItemList(
+                item = DummyItem(CATEGORY_SONGS, "Song Title 1", "Artist Name - Album Name"),
+                position = 0,
+                entry = MediaListEntry.TRACKS,
+                isFirst = true,
+                onClick = {}
+            )
+            AudioItemList(
+                item = DummyItem(CATEGORY_SONGS, "Song Title 2", "Artist Name - Album Name"),
+                position = 1,
+                entry = MediaListEntry.TRACKS,
+                onClick = {}
+            )
+            AudioItemList(
+                item = StubArtist(1, "Artist Name", "Artist Bio", null, null, 10, 50, 50, false),
+                position = 2,
+                entry = MediaListEntry.ARTISTS,
+                isLast = true,
+                onClick = {}
+            )
+        }
+    }
+}

@@ -1,8 +1,11 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
+    id 'com.google.dagger.hilt.android'
     id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
 android {
@@ -20,6 +23,9 @@ android {
     defaultConfig {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
+        vectorDrawables {
+            useSupportLibrary true
+        }
     }
 
     buildTypes {
@@ -37,13 +43,56 @@ android {
         }
     }
     namespace = 'org.videolan.television'
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.1'
+    }
 
 }
 
 dependencies {
     implementation project(':application:vlc-android')
     api project(':application:moviepedia')
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.10.0'
     testImplementation "androidx.test:core:$rootProject.ext.testCore"
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation "io.mockk:mockk:$rootProject.ext.mockk"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinx_version"
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.junitExtVersion"
     implementation 'com.jaredrummler:colorpicker:1.1.0'
+    androidTestImplementation platform('androidx.compose:compose-bom:2026.05.01')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    def composeBom = platform('androidx.compose:compose-bom:2026.05.01')
+    implementation composeBom
+    implementation("androidx.paging:paging-compose:3.5.0")
+    implementation("androidx.compose.animation:animation-graphics:1.11.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.0")
+
+    // General compose dependencies
+    implementation 'androidx.activity:activity-compose:1.13.0'
+    implementation("androidx.compose.ui:ui:1.11.2")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+
+    // Compose for TV dependencies
+    implementation "androidx.compose.foundation:foundation:$rootProject.ext.composeFoundation"
+    implementation "androidx.compose.material3:material3:$rootProject.ext.composeMaterial"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$rootProject.ext.lifecycleVersion"
+    implementation "androidx.compose.runtime:runtime-livedata:1.11.2"
+    implementation "androidx.navigation3:navigation3-runtime:1.1.2"
+    implementation "androidx.navigation3:navigation3-ui:1.1.2"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-navigation3:2.10.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$rootProject.ext.kotlin_serialization_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$rootProject.ext.kotlin_serialization_version"
+    implementation "androidx.palette:palette-ktx:1.0.0"
+
+    // Hilt
+    implementation "com.google.dagger:hilt-android:$rootProject.ext.hilt_version"
+    ksp "com.google.dagger:hilt-android-compiler:$rootProject.ext.hilt_version"
+    implementation "androidx.hilt:hilt-navigation-compose:1.2.0"
 }

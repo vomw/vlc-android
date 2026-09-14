@@ -6,6 +6,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="app_name" translatable="false">VLC</string>
+    <string name="general">General</string>
     <string name="other">Other</string>
     <string name="sortby">Sort by…</string>
     <string name="sortby_name">Name</string>
@@ -277,6 +278,8 @@
     <string name="audio_resume_playback_warning">Disabling the audio play queue history may lead to some behavior issues.\nAfter disabling it you may not be able to resume the playback from:\n\n\t- a  bluetooth device\n\t- the widget\n\t- the media notification</string>
     <string name="playback_history_warning">Disabling the playback history will hide the history, the media progress and the seen markers. The app will continue to save your activity and it will be restored if the history is turned back on.\nIf you want to completely stop saving your activity, use the incognito mode instead.\nYou can also clear your history in the history screen or in the advanced settings.</string>
     <string name="audio_resume_playback_summary">Allow saving the audio play queue to resume later</string>
+    <string name="audio_behavior_category">Behavior</string>
+    <string name="audio_open_player_title">Open the audio player when starting audio playback</string>
 
     <string name="play_button">Play Button</string>
 
@@ -676,6 +679,8 @@
     <string name="notset">Not set</string>
     <string name="go_to_chapter">Go to chapter…</string>
     <string name="current_chapter">Chapter: %s</string>
+    <string name="next_chapter">Next chapter</string>
+    <string name="previous_chapter">Previous chapter</string>
     <string name="confirm_resume">Resume from last position?</string>
     <string name="apply_playqueue">Apply for all the play queue</string>
     <string name="confirm_resume_title">Resume played videos</string>
@@ -1262,6 +1267,9 @@
     <string name="enable_screenshot_gesture">Tap with 3 fingers</string>
     <string name="enable_screenshot_button">Show the screenshot button</string>
     <string name="enable_screenshot_button_and_gesture">Button and gesture</string>
+    <string name="open_audio_player">Open audio player</string>
+    <string name="pin_audio_player">Pin audio player</string>
+    <string name="unpin_audio_player">Unpin audio player</string>
 
 
 
@@ -1446,4 +1454,8 @@
     <string name="feedback_email_warning_try_anyway">Try anyway</string>
     <string name="forum_url" translatable="false">https://forum.videolan.org/viewforum.php?f=35</string>
     <string name="doc_url" translatable="false">https://docs.videolan.me/vlc-user/android/</string>
+    <string name="scroll_to_top">Scroll to top</string>
+    <string name="old_ui">Switch to old interface</string>
+    <string name="new_ui">New interface</string>
+    <string name="edit_play_queue">Edit play queue</string>
 </resources>

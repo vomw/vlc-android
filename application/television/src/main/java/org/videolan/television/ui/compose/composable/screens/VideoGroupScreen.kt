@@ -1,0 +1,147 @@
+/*
+ * ************************************************************************
+ *  VideoGroupScreen.kt
+ * *************************************************************************
+ * Copyright © 2025 VLC authors and VideoLAN
+ * Author: Nicolas POMEPUY
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ *
+ *
+ */
+
+package org.videolan.television.ui.compose.composable.screens
+
+import androidx.compose.animation.core.animateDpAsState
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
+import org.videolan.medialibrary.interfaces.media.Folder
+import org.videolan.medialibrary.interfaces.media.VideoGroup
+import org.videolan.television.R
+import org.videolan.television.ui.compose.composable.components.AudioPlayer
+import org.videolan.television.ui.compose.composable.components.DisplaySettings
+import org.videolan.television.ui.compose.composable.components.LabeledIconButton
+import org.videolan.television.ui.compose.composable.lists.VideoList
+import org.videolan.television.ui.compose.theme.VlcTVTheme
+import org.videolan.television.ui.compose.utils.LocalMainContentFocusRequester
+import org.videolan.tools.Settings
+import org.videolan.vlc.media.PlaylistManager
+import org.videolan.television.viewmodel.MainActivityViewModel
+
+@Composable
+fun VideoGroupScreen(folder: Folder? = null, group : VideoGroup? = null, viewModel: MainActivityViewModel? = if (LocalInspectionMode.current) null else hiltViewModel()) {
+        val scope = rememberCoroutineScope()
+        val snackbarHostState = remember { SnackbarHostState() }
+        val snackbarContent by viewModel?.snackBarFlow?.collectAsState() ?: remember { mutableStateOf(null) }
+        LaunchedEffect(snackbarContent) {
+            snackbarContent?.let { snackbarContent ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(snackbarContent.message, duration = snackbarContent.duration)
+                    viewModel?.showSnackbar(null)
+                }
+            }
+        }
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+        ) { contentPadding ->
+            Box {
+                VideoGroupScreenContent(Modifier.padding(contentPadding), folder, group)
+                DisplaySettings(viewModel = viewModel, inGrouping = true)
+            }
+        }
+}
+
+@Composable
+fun VideoGroupScreenContent(modifier: Modifier, folder: Folder? = null, group : VideoGroup? = null) {
+    Column(modifier
+        .fillMaxHeight()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val activity = LocalActivity.current
+            LabeledIconButton(
+                label = stringResource(R.string.close),
+                vectorImage = Icons.AutoMirrored.Outlined.ArrowBack,
+                modifier =  Modifier
+//                    .focusRequester(focusRequester = focusRequester),
+            ) {
+                activity?.finish()
+            }
+            Text(text = if (folder != null) stringResource(R.string.talkback_folder, folder.title) else stringResource(R.string.talkback_video_group, group!!.title))
+        }
+        Box(modifier) {
+            val isPinned by Settings.audioPlayerPinned.observeAsState(false)
+            val showAudioPlayer by PlaylistManager.showAudioPlayer.observeAsState(false)
+            val pinOffset by animateDpAsState(if (isPinned && showAudioPlayer) VlcTVTheme.dimens.miniPlayerWidth else 0.dp, label = "pinOffset")
+
+            val contentFocusRequester = remember { FocusRequester() }
+            CompositionLocalProvider(LocalMainContentFocusRequester provides contentFocusRequester) {
+                Box(modifier = Modifier
+                    .focusRequester(contentFocusRequester)
+                    .focusGroup()
+                    .fillMaxSize()
+                    .padding(start = pinOffset)) {
+                    if (folder != null)
+                        VideoList(Modifier
+                            .fillMaxSize()
+                            .padding(
+                                top = 16.dp,
+                                start = 24.dp,
+                                end = 24.dp
+                            ), folder = folder, onFocusExit = {}, onFocusEnter = {})
+                    else
+                        VideoList(Modifier
+                            .fillMaxSize()
+                            .padding(
+                                top = 16.dp,
+                                start = 24.dp,
+                                end = 24.dp
+                            ), group = group, onFocusExit = {}, onFocusEnter = {})
+                }
+                AudioPlayer(requestFocus = false)
+            }
+        }
+    }
+}

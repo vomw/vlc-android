@@ -45,6 +45,7 @@ const val ID_PREFERENCES = "preferences"
 const val ACTIVITY_RESULT_PREFERENCES = 1
 const val ACTIVITY_RESULT_OPEN = 2
 const val ACTIVITY_RESULT_SECONDARY = 3
+const val BROWSER_TYPE = "browser_type"
 
 // PlaybackService
 @JvmField
@@ -135,13 +136,12 @@ const val HEADER_MISC = 5L
 const val HEADER_STREAM = 6L
 const val HEADER_SERVER = 7L
 const val HEADER_PLAYLISTS = 8L
-const val HEADER_MOVIES = 30L
-const val HEADER_TV_SHOW = 31L
 const val HEADER_RECENTLY_PLAYED = 32L
 const val HEADER_RECENTLY_ADDED = 33L
 const val HEADER_NOW_PLAYING = 34L
 const val HEADER_PERMISSION = 35L
 const val HEADER_FAVORITES = 36L
+const val HEADER_ADD_STREAM = 37L
 const val ID_SETTINGS = 10L
 const val ID_ABOUT_TV = 11L
 const val ID_REFRESH = 13L
@@ -150,6 +150,7 @@ const val ID_ALL_TVSHOWS = 15L
 const val ID_SPONSOR = 16L
 const val ID_PIN_LOCK = 17L
 const val ID_REMOTE_ACCESS = 18L
+const val ID_NEW_UI = 19L
 const val CATEGORY_NOW_PLAYING = 20L
 const val CATEGORY_NOW_PLAYING_PAUSED = 28L
 const val CATEGORY_ARTISTS = 21L
@@ -219,15 +220,13 @@ const val SCHEME_PACKAGE = "package"
 
 // Class names
 const val START_ACTIVITY = "org.videolan.vlc.StartActivity"
-const val COMPATERROR_ACTIVITY = "org.videolan.vlc.gui.CompatErrorActivity"
 const val TV_SEARCH_ACTIVITY = "org.videolan.television.ui.SearchActivity"
 const val MOBILE_SEARCH_ACTIVITY = "org.videolan.vlc.gui.SearchActivity"
-const val TV_MAIN_ACTIVITY = "org.videolan.television.ui.MainTvActivity"
-const val TV_CONFIRMATION_ACTIVITY = "org.videolan.television.ui.dialogs.ConfirmationTvActivity"
+const val TV_MAIN_ACTIVITY = "org.videolan.television.ui.MainActivity"
 const val TV_PREFERENCE_ACTIVITY = "org.videolan.television.ui.preferences.PreferencesActivity"
 const val MOBILE_MAIN_ACTIVITY = "org.videolan.vlc.gui.MainActivity"
-const val MOVIEPEDIA_ACTIVITY = "org.videolan.moviepedia.ui.MoviepediaActivity"
-const val TV_AUDIOPLAYER_ACTIVITY = "org.videolan.television.ui.audioplayer.AudioPlayerActivity"
+const val MOVIEPEDIA_ACTIVITY = "org.videolan.moviepedia.ui.MediaScrapingActivity"
+const val TV_AUDIOPLAYER_ACTIVITY = "org.videolan.television.ui.AudioPlayerActivity"
 const val MEDIAPARSING_SERVICE = "org.videolan.vlc.MediaParsingService"
 const val TV_ONBOARDING_ACTIVITY = "org.videolan.television.ui.OnboardingActivity"
 const val REMOTE_ACCESS_SERVICE = "org.videolan.vlc.remoteaccessserver.RemoteAccessService"

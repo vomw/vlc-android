@@ -7,6 +7,8 @@ import android.os.Build
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.videolan.tools.Settings.audioControlsChangeListener
 import org.videolan.tools.Settings.init
 import org.videolan.tools.Settings.initPostMigration
@@ -36,7 +38,10 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
     var safeMode = false
     var remoteAccessEnabled = MutableLiveData(false)
     var fastplaySpeed = 2f
+    var audioPlayerPinned = MutableLiveData(false)
     private var audioControlsChangeListener: (() -> Unit)? = null
+    private val _audioControlsChanges = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val audioControlsChanges = _audioControlsChanges.asSharedFlow()
     lateinit var device : DeviceInfo
         private set
 
@@ -62,6 +67,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
         incognitoMode = prefs.getBoolean(KEY_INCOGNITO, false)
         safeMode = prefs.getBoolean(KEY_SAFE_MODE, false) && prefs.getString(KEY_SAFE_MODE_PIN, "")?.isNotBlank() == true
         remoteAccessEnabled.postValue(prefs.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false))
+        audioPlayerPinned.postValue(prefs.getBoolean(KEY_AUDIO_PLAYER_PINNED, false))
         return prefs
     }
 
@@ -85,6 +91,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
      * Trigger the [audioControlsChangeListener] to update the UI
      */
     fun onAudioControlsChanged() {
+        _audioControlsChanges.tryEmit(Unit)
         audioControlsChangeListener?.invoke()
     }
 
@@ -163,12 +170,17 @@ const val KEY_AUDIO_LONG_JUMP_DELAY = "audio_long_jump_delay"
 const val KEY_AUDIO_FORCE_SHUFFLE = "audio_force_shuffle"
 const val KEY_AUDIO_SHOW_TRACK_NUMBERS = "audio_show_track_numbers"
 const val KEY_AUDIO_SHOW_CHAPTER_BUTTONS = "audio_show_chapter_buttons"
-const val KEY_AUDIO_SHOW_BOOkMARK_BUTTONS = "audio_show_bookmark_buttons"
+const val KEY_AUDIO_SHOW_BOOKMARK_BUTTONS = "audio_show_bookmark_buttons"
 const val KEY_AUDIO_SHOW_BOOKMARK_MARKERS = "audio_show_bookmark_markers"
 const val KEY_PERSISTENT_INCOGNITO = "persistent_incognito"
 const val KEY_BROWSE_NETWORK = "browse_network"
 const val KEY_VIDEOS_CARDS = "video_display_in_cards"
 const val KEY_GROUP_VIDEOS = "video_min_group_length"
+const val KEY_MAIN_TAB = "main_tab"
+const val KEY_AUDIO_TAB = "audio_tab"
+const val KEY_VIDEO_TAB = "video_tab"
+const val KEY_SIDE_PANEL_DISCOVERED = "side_panel_discovered"
+const val KEY_AUDIO_PLAYER_PINNED = "audio_player_pinned"
 
 
 // AudioPlayer
@@ -301,6 +313,27 @@ const val KEY_QUICK_PLAY = "quick_play"
 const val KEY_QUICK_PLAY_DEFAULT = "quick_play_default"
 const val KEY_AOUT = "aout"
 
+const val KEY_ACTION_DIRECTORIES = "directories"
+const val KEY_ACTION_PERMISSIONS = "permissions"
+const val KEY_ACTION_AUDIO_DUCKING = "audio_ducking"
+const val KEY_ACTION_SOUNDFONT = "soundfont"
+const val KEY_ACTION_SUBTITLES_PRESETS = "subtitles_presets"
+const val KEY_ACTION_SLEEP_TIMER = "default_sleep_timer"
+const val KEY_ACTION_MODIFY_PIN_CODE = "modify_pin_code"
+const val KEY_ACTION_REMOTE_ACCESS_STATUS = "remote_access_status"
+const val KEY_ACTION_REMOTE_ACCESS_INFO = "remote_access_info"
+const val KEY_ACTION_OPTIONAL_FEATURES = "optional_features"
+const val KEY_ACTION_QUIT_APP = "quit_app"
+const val KEY_ACTION_DUMP_MEDIA_DB = "dump_media_db"
+const val KEY_ACTION_DUMP_APP_DB = "dump_app_db"
+const val KEY_ACTION_CLEAR_MEDIA_DB = "clear_media_db"
+const val KEY_ACTION_CLEAR_APP_DATA = "clear_app_data"
+const val KEY_ACTION_CLEAR_HISTORY = "clear_history"
+const val KEY_ACTION_EXPORT_SETTINGS = "export_settings"
+const val KEY_ACTION_RESTORE_SETTINGS = "restore_settings"
+const val KEY_ACTION_DEBUG_LOGS = "debug_logs"
+const val KEY_ACTION_NIGHTLY_INSTALL = "nightly_install"
+
 
 const val KEY_HARDWARE_ACCELERATION = "hardware_acceleration"
 const val KEY_ALWAYS_FAST_SEEK = "always_fast_seek"
@@ -398,6 +431,7 @@ const val KEY_OPENGL = "opengl"
 
 //Control settings
 const val KEY_BLURRED_COVER_BACKGROUND = "blurred_cover_background"
+const val KEY_AUDIO_FORCE_OPEN_PLAYER = "audio_force_open_player"
 
 
 //Advanced

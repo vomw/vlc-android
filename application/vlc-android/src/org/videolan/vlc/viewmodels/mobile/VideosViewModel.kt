@@ -21,10 +21,15 @@
 package org.videolan.vlc.viewmodels.mobile
 
 import android.content.Context
+import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,7 +37,13 @@ import org.videolan.medialibrary.interfaces.media.Folder
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.interfaces.media.VideoGroup
 import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.resources.GROUP_VIDEOS_FOLDER
+import org.videolan.resources.GROUP_VIDEOS_NAME
+import org.videolan.resources.GROUP_VIDEOS_NONE
+import org.videolan.tools.KEY_GROUP_VIDEOS
+import org.videolan.tools.Settings
 import org.videolan.tools.isStarted
+import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.video.VideoGridFragment
@@ -43,6 +54,7 @@ import org.videolan.vlc.providers.medialibrary.FoldersProvider
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
 import org.videolan.vlc.providers.medialibrary.VideoGroupsProvider
 import org.videolan.vlc.providers.medialibrary.VideosProvider
+import org.videolan.vlc.util.MediaListEntry
 import org.videolan.vlc.viewmodels.MedialibraryViewModel
 
 class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Folder?, val group: VideoGroup?) : MedialibraryViewModel(context) {
@@ -60,8 +72,9 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
 
     override val providers: Array<MedialibraryProvider<out MediaLibraryItem>> = arrayOf(provider)
 
-    internal fun changeGroupingType(type: VideoGroupingType) {
+    fun changeGroupingType(type: VideoGroupingType) {
         if (groupingType == type) return
+        if (BuildConfig.DEBUG) Log.d("Grouping", "Changed grouping type to $type")
         groupingType = type
         provider = loadProvider()
         providers[0] = provider
@@ -72,6 +85,9 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         watchMedia()
         watchMediaGroups()
         watchFolders()
+        watchFor(MediaListEntry.VIDEO)
+        watchFor(MediaListEntry.VIDEO_FOLDER)
+        watchFor(MediaListEntry.VIDEO_GROUPS)
     }
 
     class Factory(val context: Context, private val groupingType: VideoGroupingType, val folder: Folder? = null, val group: VideoGroup? = null) : ViewModelProvider.NewInstanceFactory() {
@@ -80,9 +96,39 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
             return VideosViewModel(context.applicationContext, groupingType, folder, group) as T
         }
     }
+    companion object {
+
+
+        // Define a custom key for your dependency
+        val PARENT_GROUP_KEY = object : CreationExtras.Key<VideoGroup?> {}
+        val PARENT_FOLDER_KEY = object : CreationExtras.Key<Folder?> {}
+
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                // Get the dependency in your factory
+                val application = checkNotNull(this[APPLICATION_KEY])
+                val parentGroup = this[PARENT_GROUP_KEY]
+                val parentFolder = this[PARENT_FOLDER_KEY]
+
+                val grouping = if (parentGroup != null || parentFolder != null) VideoGroupingType.NONE else when (Settings.getInstance(application).getString(KEY_GROUP_VIDEOS, null) ?: GROUP_VIDEOS_NAME) {
+                    GROUP_VIDEOS_NONE -> VideoGroupingType.NONE
+                    GROUP_VIDEOS_FOLDER -> VideoGroupingType.FOLDER
+                    else -> VideoGroupingType.NAME
+                }
+
+                VideosViewModel(
+                    application,
+                    grouping,
+                    parentFolder,
+                    parentGroup
+//                    savedStateHandle
+                )
+            }
+        }
+    }
 
     // Folders & Groups
-    internal fun play(position: Int) = viewModelScope.launch {
+    fun play(position: Int) = viewModelScope.launch {
         val item = provider.pagedList.value?.get(position) ?: return@launch
         withContext(Dispatchers.IO) {
             when (item) {
@@ -95,11 +141,15 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
     }
 
     internal fun append(position: Int) = viewModelScope.launch {
-        val item = provider.pagedList.value?.get(position) ?: return@launch
+        append(provider.pagedList.value?.get(position) ?: return@launch)
+    }
+
+    fun append (item: MediaLibraryItem) = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             when (item) {
                 is Folder -> item.getAll()
                 is VideoGroup -> item.getAll()
+                is MediaWrapper -> listOf(item)
                 else -> null
             }
         }?.let { MediaUtils.appendMedia(context, it) }
@@ -110,7 +160,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         MediaUtils.openList(context, list, 0)
     }
 
-    internal fun addItemToPlaylist(activity: FragmentActivity, position: Int) = viewModelScope.launch {
+    fun addItemToPlaylist(activity: FragmentActivity, position: Int) = viewModelScope.launch {
         val item = provider.pagedList.value?.get(position) ?: return@launch
         withContext(Dispatchers.IO) {
             when (item) {
@@ -126,7 +176,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         MediaUtils.appendMedia(context, list)
     }
 
-    internal fun playVideo(context: FragmentActivity?, mw: MediaWrapper, position: Int, fromStart: Boolean = false, forceAll:Boolean = false, forceAudio: Boolean = false) {
+     fun playVideo(context: FragmentActivity?, mw: MediaWrapper, position: Int, fromStart: Boolean = false, forceAll:Boolean = false, forceAudio: Boolean = false) {
         if (context === null) return
         if (!mw.isPresent) {
             UiTools.snackerMissing(context)
@@ -151,7 +201,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         }
     }
 
-    internal fun playAll(activity: FragmentActivity?, position: Int = 0) {
+    fun playAll(activity: FragmentActivity?, position: Int = 0) {
         if (activity?.isStarted() == true) when (groupingType) {
             VideoGroupingType.NONE -> MediaUtils.playAll(activity, provider as VideosProvider, position, false)
             VideoGroupingType.FOLDER -> MediaUtils.playAllTracks(activity, (provider as FoldersProvider), position, false)
@@ -242,8 +292,8 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
     }
 }
 
-enum class VideoGroupingType {
-    NONE, FOLDER, NAME
+enum class VideoGroupingType(val settingsKey: String) {
+    NONE(GROUP_VIDEOS_NONE), FOLDER(GROUP_VIDEOS_FOLDER), NAME(GROUP_VIDEOS_NAME)
 }
 
 internal fun VideoGridFragment.getViewModel(type: VideoGroupingType = VideoGroupingType.NONE, folder: Folder?, group: VideoGroup?) = ViewModelProvider(requireActivity(), VideosViewModel.Factory(requireContext(), type, folder, group))[VideosViewModel::class.java]

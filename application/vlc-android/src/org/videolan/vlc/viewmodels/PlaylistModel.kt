@@ -33,9 +33,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -48,8 +52,10 @@ import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.util.EmptyPBSCallback
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.PlaylistFilterDelegate
+import java.util.UUID
+import kotlin.collections.toMutableList
 
-class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback {
+open class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback {
 
     var service: PlaybackService? = null
     val dataset = LiveDataset<MediaWrapper>()
@@ -62,9 +68,12 @@ class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback 
             filteringState.value = value
         }
     val filteringState = MutableLiveData<Boolean>()
+    val showBookmarks = MutableLiveData<Boolean>()
     val progress = MediatorLiveData<PlaybackProgress>()
     val speed = MediatorLiveData<Float>()
     val playerState = MutableLiveData<PlayerState>()
+    private val _itemInvalidation: MutableStateFlow<Int?> = MutableStateFlow(null)
+    val itemInvalidation: StateFlow<Int?> = _itemInvalidation.asStateFlow()
     val connected : Boolean
         get() = service !== null
     var lastQuery: CharSequence? = null
@@ -115,13 +124,18 @@ class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback 
 
     override fun update() {
         service?.run {
+            media.toMutableList().forEach {
+                if (it.tag == null)
+                    it.tag = UUID.randomUUID().toString()
+            }
             if (filtering) {
                 originalDataset = media.toMutableList()
                 filter.sourceSet = originalDataset
                 dataset.value = filter.dataset.value?.toMutableList() ?: media.toMutableList()
                 filterActor.trySend(lastQuery)
-            } else
+            } else {
                 dataset.value = media.toMutableList()
+            }
             playerState.value = PlayerState(isPlaying, title, artist)
         }
     }
@@ -170,13 +184,13 @@ class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback 
         filterActor.trySend(query)
     }
 
-    val title
+    open val title
         get() = service?.title
 
-    val artist
+    open val artist
         get() = service?.artist
 
-    val album
+    open val album
         get() = service?.album
 
     public override fun onCleared() {
@@ -199,7 +213,17 @@ class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback 
     }
 
     fun stopAfter(position: Int) {
+        viewModelScope.launch {
+            _itemInvalidation.emit(position)
+        }
         service?.playlistManager?.stopAfter = position
+    }
+
+    fun invalidateItem(position: Int) {
+        viewModelScope.launch {
+            if (_itemInvalidation.value == position) _itemInvalidation.emit(null)
+            _itemInvalidation.emit(position)
+        }
     }
 
     fun play(position: Int) = service?.playIndex(position)
@@ -242,7 +266,7 @@ class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback 
             service?.repeatType = value
         }
 
-    val currentMediaWrapper : MediaWrapper?
+    open val currentMediaWrapper : MediaWrapper?
         get() = service?.currentMediaWrapper
 
     val currentMediaPosition : Int

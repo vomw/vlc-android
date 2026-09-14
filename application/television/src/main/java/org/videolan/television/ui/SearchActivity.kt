@@ -1,7 +1,7 @@
 /*****************************************************************************
- * SearchActivity.java
+ * SearchActivity.kt
  *
- * Copyright © 2014-2015 VLC authors, VideoLAN and VideoLabs
+ * Copyright © 2014-2025 VLC authors, VideoLAN and VideoLabs
  * Author: Geoffrey Métais
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,35 +20,71 @@
  */
 package org.videolan.television.ui
 
-import android.annotation.TargetApi
-import android.os.Build
+import android.app.SearchManager
+import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.widget.TextView
-import org.videolan.television.R
-import org.videolan.television.ui.browser.BaseTvActivity
+import android.speech.RecognizerIntent
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import dagger.hilt.android.AndroidEntryPoint
+import org.videolan.television.ui.compose.composable.screens.SearchScreen
+import org.videolan.television.ui.compose.theme.VlcTVTheme
+import org.videolan.television.viewmodel.SearchViewModel
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-class SearchActivity : BaseTvActivity() {
+@AndroidEntryPoint
+class SearchActivity : DefaultTvActivity() {
 
-    private lateinit var fragment: SearchFragment
-    private var emptyView: TextView? = null
+    private val viewModel: SearchViewModel by viewModels()
+
+    private val voiceSearchLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val spokenText: String? =
+                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.get(0)
+            spokenText?.let { viewModel.setQuery(it) }
+        }
+    }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.tv_search)
-        fragment = supportFragmentManager.findFragmentById(R.id.search_fragment) as SearchFragment
-        emptyView = findViewById(R.id.empty)
+        handleIntent(intent)
+        setContent {
+            VlcTVTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    SearchScreen(
+                        viewModel = viewModel,
+                        onVoiceSearchClick = { startVoiceSearch() }
+                    )
+                }
+            }
+        }
     }
 
-    override fun refresh() { }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
 
-    fun updateEmptyView(empty: Boolean) {
-        emptyView!!.visibility = if (empty) View.VISIBLE else View.GONE
+    private fun handleIntent(intent: Intent) {
+        if (Intent.ACTION_SEARCH == intent.action || "com.google.android.gms.actions.SEARCH_ACTION" == intent.action) {
+            intent.getStringExtra(SearchManager.QUERY)?.let { query ->
+                viewModel.setQuery(query)
+            }
+        }
+    }
+
+    private fun startVoiceSearch() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        }
+        voiceSearchLauncher.launch(intent)
     }
 
     override fun onSearchRequested(): Boolean {
-        fragment.startRecognition()
+        startVoiceSearch()
         return true
     }
 

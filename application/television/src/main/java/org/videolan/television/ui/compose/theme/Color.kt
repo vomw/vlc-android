@@ -1,0 +1,76 @@
+/*
+ * ************************************************************************
+ *  Color.kt
+ * *************************************************************************
+ * Copyright © 2025 VLC authors and VideoLAN
+ * Author: Nicolas POMEPUY
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ *
+ *
+ */
+
+package org.videolan.television.ui.compose.theme
+
+import androidx.compose.ui.graphics.Color
+
+val BackgroundColor = Color(0xFF34434e)
+val BackgroundColorMedium = Color(0xFF152836)
+val BackgroundColorDark = Color(0xFF011422)
+val BackgroundColorDarkTransparent50 = Color(0x88011422)
+
+
+
+val Orange50 = Color(0XFFFFF3E0)
+val Orange100 = Color(0XFFFFDFAE)
+val Orange200 = Color(0XFFFFCA7D)
+val Orange300 = Color(0XFFFFB54C)
+val Orange400 = Color(0XFFFFA11A)
+val Orange500 = Color(0XFFFF8800)
+val Orange600 = Color(0XFFFF7D00)
+val Orange700 = Color(0XFFFF7200)
+val Orange800 = Color(0XFFFF610A)
+val Orange900 = Color(0XFFFF5014)
+
+val Orange800Transparent50 = Color(0X80FF610A)
+
+val White = Color(0XFFFFFFFF)
+val WhiteTransparent90 = Color(0XE6FFFFFF)
+val WhiteTransparent70 = Color(0XB3FFFFFF)
+val WhiteTransparent50 = Color(0X80FFFFFF)
+val WhiteTransparent25 = Color(0X40FFFFFF)
+val WhiteTransparent20 = Color(0X33FFFFFF)
+val WhiteTransparent10 = Color(0X19FFFFFF)
+val WhiteTransparent05 = Color(0X09FFFFFF)
+val Black = Color(0XFF000000)
+val BlackTransparent25 = Color(0X40000000)
+val BlackTransparent50 = Color(0X80000000)
+val BlackTransparent70 = Color(0XB3000000)
+val BlackTransparent90 = Color(0XE6000000)
+val Transparent = Color(0X00FFFFFF)
+
+val Grey900Transparent = Color(0x80212121)
+
+val Gray50 = Color(0xFFFAFAFA)
+val Gray100 = Color(0xFFF5F5F5)
+val Gray200 = Color(0xFFEEEEEE)
+val Gray300 = Color(0xFFE0E0E0)
+val Gray400 = Color(0xFFBDBDBD)
+val Gray500 = Color(0xFF9E9E9E)
+val Gray600 = Color(0xFF757575)
+val Gray700 = Color(0xFF616161)
+val Gray800 = Color(0xFF424242)
+val Gray900 = Color(0xFF212121)
+val Gray950 = Color(0xFF111111)

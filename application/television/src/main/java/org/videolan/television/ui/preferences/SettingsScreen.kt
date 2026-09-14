@@ -1,0 +1,410 @@
+/*
+ * ************************************************************************
+ *  SettingsScreen.kt
+ * *************************************************************************
+ * Copyright © 2026 VLC authors and VideoLAN
+ * Author: Nicolas POMEPUY
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ *
+ *
+ */
+
+package org.videolan.television.ui.preferences
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import org.videolan.television.ui.compose.theme.VlcTVSettingsTheme
+import org.videolan.vlc.R
+
+/**
+ * CompositionLocal to provide a [SettingsProvider] down the UI tree.
+ */
+val LocalSettingsProvider = staticCompositionLocalOf<SettingsProvider> {
+    error("No SettingsProvider provided")
+}
+
+/**
+ * Main screen for TV settings, implementing a two-pane layout (Sidebar + Detail).
+ *
+ * @param viewModel The [SettingsViewModel] managing the settings state.
+ */
+@Composable
+fun SettingsScreen(
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val provider = viewModel as SettingsProvider
+
+    // Collect one-shot navigation events
+    LaunchedEffect(Unit) {
+        provider.navEvents.collect { event ->
+            when (event) {
+                is SettingsEvent.ScrollToAndFocus -> {
+                    // Find and select the category
+                    val categories = provider.categories.value
+                    val cat = categories.find { it.title == event.categoryTitle }
+                    cat?.let { provider.selectCategory(it) }
+                }
+            }
+        }
+    }
+
+    CompositionLocalProvider(LocalSettingsProvider provides provider) {
+        SettingsScreenContent()
+    }
+}
+
+/**
+ * Internal content for the settings screen.
+ */
+@Composable
+private fun SettingsScreenContent() {
+    val provider = LocalSettingsProvider.current
+    val context = LocalContext.current
+    val pendingFocusKey by provider.pendingFocusKey.collectAsState()
+
+    val detailFocusRequester = remember { FocusRequester() }
+    val selectedCategoryFocusRequester = remember { FocusRequester() }
+    var isDetailFocused by remember { mutableStateOf(false) }
+
+    // Request initial focus on the sidebar
+    LaunchedEffect(Unit) {
+        selectedCategoryFocusRequester.requestFocus()
+    }
+
+    // Intercept Back button when focus is in the detail pane
+    BackHandler(enabled = isDetailFocused) {
+        selectedCategoryFocusRequester.requestFocus()
+    }
+    
+    // Focus Trap: Forcefully keep focus in the detail pane during navigation
+    LaunchedEffect(pendingFocusKey) {
+        if (pendingFocusKey != null) {
+            detailFocusRequester.requestFocus()
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Sidebar (Left Pane)
+        SettingsSidebar(
+            onCategoryAction = { detailFocusRequester.requestFocus() },
+            selectedCategoryFocusRequester = selectedCategoryFocusRequester,
+            detailFocusRequester = detailFocusRequester,
+            modifier = Modifier
+                .width(320.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.surface) // Use surface for sidebar background
+                .padding(
+                    bottom = dimensionResource(id = org.videolan.resources.R.dimen.tv_overscan_vertical)
+                )
+        )
+
+        // Detail (Right Pane)
+        SettingsDetail(
+            onFocusChanged = { isDetailFocused = it },
+            focusRequester = detailFocusRequester,
+            sidebarRecallFocusRequester = selectedCategoryFocusRequester,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(
+                    end = dimensionResource(id = org.videolan.resources.R.dimen.tv_overscan_horizontal),
+                    bottom = dimensionResource(id = org.videolan.resources.R.dimen.tv_overscan_vertical),
+                    start = dimensionResource(id = org.videolan.resources.R.dimen.tv_overscan_horizontal)
+                )
+        )
+    }
+}
+
+@Composable
+fun SettingsSidebar(
+    onCategoryAction: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    selectedCategoryFocusRequester: FocusRequester = remember { FocusRequester() },
+    detailFocusRequester: FocusRequester? = null
+) {
+    val provider = LocalSettingsProvider.current
+    val categories by provider.categories.collectAsState()
+    val selectedCategory by provider.selectedCategory.collectAsState()
+    val pendingFocusKey by provider.pendingFocusKey.collectAsState()
+    
+    val listState = rememberLazyListState()
+
+    // Sync scroll when the selected category changes externally (e.g., via search)
+    LaunchedEffect(selectedCategory) {
+        selectedCategory?.let { sel ->
+            val index = categories.indexOfFirst { it.title == sel.title }
+            if (index != -1) {
+                listState.scrollToItem(index)
+            }
+        }
+    }
+
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(id = org.videolan.television.R.string.preferences),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 24.dp, bottom = 24.dp, top = dimensionResource(id = org.videolan.resources.R.dimen.tv_overscan_vertical))
+        )
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 24.dp)
+        ) {
+            items(categories, key = { it.title }) { category ->
+                val isSelected = category.title == selectedCategory?.title
+                val itemFocusRequester = remember { FocusRequester() }
+                
+                CategoryItem(
+                    category = category,
+                    isSelected = isSelected,
+                    onSelected = { 
+                        // Only update selection if this sidebar item was intentionally focused
+                        // and we are NOT in the middle of a navigation event.
+                        if (pendingFocusKey == null) {
+                            provider.selectCategory(category)
+                        }
+                    },
+                    onAction = onCategoryAction,
+                    focusRequester = if (isSelected) selectedCategoryFocusRequester else itemFocusRequester,
+                    modifier = Modifier.focusProperties { 
+                        detailFocusRequester?.let { right = it }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsDetail(
+    modifier: Modifier = Modifier,
+    onFocusChanged: (Boolean) -> Unit = {},
+    focusRequester: FocusRequester,
+    sidebarRecallFocusRequester: FocusRequester? = null
+) {
+    val provider = LocalSettingsProvider.current
+    val category by provider.selectedCategory.collectAsState()
+    val searchQuery by provider.searchQuery.collectAsState()
+    val searchResults by provider.searchResults.collectAsState()
+    val pendingFocusKey by provider.pendingFocusKey.collectAsState()
+
+    var detailPaneHasFocus by remember { mutableStateOf(false) }
+
+    // Track the last focused item key for each category
+    val lastFocusedItemPerCategory = remember { mutableMapOf<Int, String?>() }
+    val listState = rememberLazyListState()
+
+    // Handle scrolling to the target item when navigation happens
+    LaunchedEffect(category?.title, pendingFocusKey) {
+        val currentCategory = category
+        if (currentCategory != null) {
+            val target = pendingFocusKey
+            if (target != null) {
+                val index = currentCategory.items.indexOfFirst { it.key == target }
+                if (index != -1) {
+                    listState.scrollToItem(index)
+                    
+                    // Wait for scroll and layout to settle
+                    snapshotFlow { listState.isScrollInProgress }
+                        .filter { !it }
+                        .first()
+                    
+                    return@LaunchedEffect
+                }
+            }
+            
+            // Only reset to top if we are NOT in navigation mode and NOT focused
+            if (pendingFocusKey == null && !detailPaneHasFocus) {
+                listState.scrollToItem(0)
+                // Reset the memory for this category since we are resetting its scroll to the top
+                lastFocusedItemPerCategory.remove(currentCategory.title)
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier
+            .focusRequester(focusRequester)
+            .onFocusChanged { state ->
+                detailPaneHasFocus = state.hasFocus
+                onFocusChanged(detailPaneHasFocus)
+            }
+    ) {
+        val context = LocalContext.current
+        LaunchedEffect(detailPaneHasFocus) {
+            if (detailPaneHasFocus) {
+                provider.onDetailFocused(context)
+            }
+        }
+
+        val currentCategory = category
+        if (currentCategory != null) {
+            val categoryId = currentCategory.title
+            val firstFocusableKey = remember(currentCategory) { 
+                currentCategory.items.firstOrNull { it !is SettingItem.Header }?.key 
+            }
+
+            Row(
+                modifier = Modifier.padding(top = dimensionResource(id = org.videolan.resources.R.dimen.tv_overscan_vertical)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                currentCategory.icon?.let { iconRes ->
+                    Icon(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+                Text(
+                    text = stringResource(id = currentCategory.title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 32.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            if (currentCategory.title == R.string.search) {
+                val searchFocusRequester = remember { FocusRequester() }
+                SearchPane(
+                    query = searchQuery,
+                    results = searchResults,
+                    onQueryChanged = { provider.setSearchQuery(it) },
+                    onResultClick = { provider.init(it) },
+                    focusRequester = searchFocusRequester,
+                    modifier = Modifier.focusProperties { 
+                        sidebarRecallFocusRequester?.let { left = it }
+                    }
+                )
+
+                // Redirect focus to search input when detail pane gains focus
+                LaunchedEffect(detailPaneHasFocus) {
+                    if (detailPaneHasFocus) {
+                        searchFocusRequester.requestFocus()
+                    }
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(currentCategory.items, key = { it.key }) { item ->
+                        val isEnabled = provider.isEnabled(item)
+                        val isHeader = item is SettingItem.Header
+                        val itemFocusRequester = remember { FocusRequester() }
+                        
+                        var itemHasFocus by remember { mutableStateOf(false) }
+
+                        // Only consume the navigation key once focused
+                        LaunchedEffect(itemHasFocus, pendingFocusKey) {
+                            if (itemHasFocus && item.key == pendingFocusKey) {
+                                provider.consumeFocusKey()
+                            }
+                        }
+
+                        val itemModifier = Modifier
+                            .onFocusChanged { state ->
+                                itemHasFocus = state.hasFocus
+                                if (state.hasFocus) {
+                                    lastFocusedItemPerCategory[categoryId] = item.key
+                                }
+                            }
+                            .focusProperties { 
+                                sidebarRecallFocusRequester?.let { left = it }
+                            }
+                            .focusRequester(itemFocusRequester)
+
+                        SettingItemContent(
+                            item = item,
+                            provider = provider,
+                            modifier = itemModifier
+                        )
+
+                        // When the detail pane receives focus (e.g. via DPAD RIGHT from sidebar),
+                        // redirect it to the last focused item in this category.
+                        LaunchedEffect(detailPaneHasFocus, category?.title, pendingFocusKey) {
+                            if (detailPaneHasFocus && !isHeader && isEnabled) {
+                                val targetKey = pendingFocusKey
+                                val lastKey = lastFocusedItemPerCategory[categoryId]
+                                
+                                if (targetKey != null) {
+                                    if (item.key == targetKey) {
+                                        itemFocusRequester.requestFocus()
+                                    }
+                                } else if (lastKey == item.key || (lastKey == null && item.key == firstFocusableKey)) {
+                                    itemFocusRequester.requestFocus()
+                                }
+                            }
+                        }
+
+                        if (!isHeader) Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun SettingsScreenPreview() {
+    val categories = listOf(
+        SettingCategory(R.string.video_prefs_category, listOf(
+            SettingItem.Toggle("video_toggle", R.string.auto_rescan, R.string.auto_rescan_summary),
+            SettingItem.Action("video_action", R.string.medialibrary_directories, R.string.directories_summary)
+        ), R.drawable.ic_pref_video),
+        SettingCategory(R.string.audio_prefs_category, emptyList(), R.drawable.ic_pref_audio)
+    )
+    
+    VlcTVSettingsTheme {
+        CompositionLocalProvider(LocalSettingsProvider provides MockSettingsProvider(categories)) {
+            SettingsScreenContent()
+        }
+    }
+}

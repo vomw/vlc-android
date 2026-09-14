@@ -1,0 +1,271 @@
+/*
+ * ************************************************************************
+ *  ComposeUtils.kt
+ * *************************************************************************
+ * Copyright © 2025 VLC authors and VideoLAN
+ * Author: Nicolas POMEPUY
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ *
+ *
+ */
+
+package org.videolan.television.ui.compose.utils
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
+import android.view.ContextThemeWrapper
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import org.videolan.television.ui.compose.theme.Transparent
+import org.videolan.television.ui.compose.theme.VlcTVTheme
+import org.videolan.vlc.R
+import org.videolan.vlc.gui.helpers.AudioUtil
+import org.videolan.vlc.util.fileReplacementMarker
+import org.videolan.vlc.util.folderReplacementMarker
+import kotlin.math.abs
+
+
+fun CharSequence?.getDescriptionAnnotated(): AnnotatedString  {
+    return buildAnnotatedString {
+        this@getDescriptionAnnotated?.split(folderReplacementMarker)?.forEachIndexed { index, splitByFolder ->
+            if (index > 0) appendInlineContent(id = folderReplacementMarker)
+            splitByFolder.split(fileReplacementMarker).forEachIndexed { index, it ->
+                if (index > 0) appendInlineContent(id = fileReplacementMarker)
+                append(it)
+
+            }
+        }
+    }
+}
+
+val inlineContentMap = mapOf(
+    folderReplacementMarker to InlineTextContent(
+        Placeholder(12.sp, 12.sp, PlaceholderVerticalAlign.TextTop)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_emoji_folder),
+            modifier = Modifier.fillMaxSize(),
+            contentDescription = ""
+        )
+    },
+    fileReplacementMarker to InlineTextContent(
+        Placeholder(12.sp, 12.sp, PlaceholderVerticalAlign.TextTop)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_emoji_file),
+            modifier = Modifier.fillMaxSize(),
+            contentDescription = ""
+        )
+    }
+)
+
+
+inline fun Modifier.conditional(
+    condition: Boolean,
+    ifTrue: Modifier.() -> Modifier,
+    ifFalse: Modifier.() -> Modifier = { this },
+): Modifier = if (condition) {
+    then(ifTrue(this))
+} else {
+    then(ifFalse(this))
+}
+
+
+fun ContentDrawScope.drawFadedEdge(edgeWidthPx: Float, leftEdge: Boolean) {
+    drawRect(
+        topLeft = Offset(if (leftEdge) 0f else size.width - edgeWidthPx, 0f),
+        size = Size(edgeWidthPx, size.height),
+        brush = Brush.horizontalGradient(
+            colors = listOf(Color.Transparent, Color.Black),
+            startX = if (leftEdge) 0f else size.width,
+            endX = if (leftEdge) edgeWidthPx else size.width - edgeWidthPx
+        ),
+        blendMode = BlendMode.DstIn
+    )
+}
+
+fun Modifier.fadingMarquee(
+    edgeWidth: Dp = 16.dp,
+    leftEdge: Boolean = true,
+    rightEdge: Boolean = true,
+    marqueeOnlyOnFocus: Boolean = false,
+    isFocused: Boolean = true
+): Modifier {
+    val isMarqueeActive = !marqueeOnlyOnFocus || isFocused
+    return this
+        .conditional(isMarqueeActive, {
+            graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    drawContent()
+                    if (leftEdge) drawFadedEdge(edgeWidth.toPx(), leftEdge = true)
+                    if (rightEdge) drawFadedEdge(edgeWidth.toPx(), leftEdge = false)
+                }
+                .basicMarquee()
+        })
+        .padding(horizontal = edgeWidth)
+}
+
+/**
+ * Vlc preview: setup everything for the preview: the context, the compose theme and the Android theme.
+ *
+ * @param content The content to preview
+ * @receiver
+ */
+@Composable
+fun VlcPreview(content: @Composable (Context) -> Unit) {
+    val context = LocalContext.current
+    if (LocalInspectionMode.current) {
+        org.videolan.medialibrary.MLContextTools.getInstance().setContext(context)
+    }
+    val themedContext = remember(context) { ContextThemeWrapper(context, org.videolan.television.R.style.Theme_VLC) }
+    CompositionLocalProvider(LocalContext provides themedContext) {
+        VlcTVTheme {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                content(context)
+            }
+        }
+    }
+}
+
+/**
+ * Local provider for the main content focus requester.
+ * This is used to return focus to the main content when leaving the audio player.
+ */
+val LocalMainContentFocusRequester = staticCompositionLocalOf { FocusRequester() }
+
+/**
+ * Log the focus state of a [Modifier]
+ *
+ * @param name the name to be displayed in the logs
+ */
+fun Modifier.logFocus(name: String): Modifier = this.onFocusChanged { state ->
+    if (state.isFocused) {
+        Log.d("FocusDebug", "✅ $name is now FOCUSED")
+    } else if (state.hasFocus) {
+        Log.d("FocusDebug", "🏠 $name HAS focus (one of its children is focused)")
+    } else {
+        Log.d("FocusDebug", "❌ $name LOST focus")
+    }
+}
+
+@Composable
+fun vlcBorder(focus: Boolean) = if (focus) BorderStroke(3.dp, MaterialTheme.colorScheme.onSurface) else BorderStroke(0.dp, Transparent)
+
+@Composable
+fun Modifier.vlcShadow(focused: Boolean, shape: Shape) = this.dropShadow(
+    shape = shape,
+    shadow = Shadow(
+        radius = if (focused) VlcTVTheme.dimens.itemFocusGlowRadius else 0.dp,
+        spread = 0.dp,
+        color = if (focused) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else Transparent,
+        offset = DpOffset(x = 0.dp, 0.dp)
+    )
+)
+
+/**
+ * Custom [BringIntoViewSpec] for TV horizontal content lines (e.g. History, Streams, Storages).
+ * Prevents vertical scroll bounce on parent scroll containers during horizontal DPAD navigation.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+val TvContentLineBringIntoViewSpec = object : BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
+        val safeTop = 40f
+        val safeBottom = containerSize - 80f
+        val itemBottom = offset + size
+
+        if (offset >= safeTop && itemBottom <= safeBottom) {
+            return 0f
+        }
+        return if (offset < safeTop) offset - safeTop else itemBottom - safeBottom
+    }
+}
+
+/**
+ * Custom [BringIntoViewSpec] for TV grids (e.g. PaginatedGrid).
+ * Positions focused row center near ~42% from top of grid viewport for optimal TV centering.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+val TvGridBringIntoViewSpec = object : BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
+        val targetPivotY = containerSize * 0.42f
+        val itemCenterY = offset + (size / 2f)
+        val delta = itemCenterY - targetPivotY
+
+        return if (abs(delta) <= 80f) 0f else delta
+    }
+}
+
+@Composable
+fun rememberAudioCoverBitmap(coverUrl: String?, size: Int): Bitmap? {
+    var bitmap by remember(coverUrl) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(coverUrl) {
+        if (coverUrl != null) {
+            bitmap = AudioUtil.readCoverBitmap(Uri.decode(coverUrl), size)
+        }
+    }
+    return bitmap
+}
+
+

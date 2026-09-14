@@ -79,7 +79,7 @@ import org.videolan.tools.AUDIO_HINGE_ON_RIGHT
 import org.videolan.tools.AUDIO_PLAY_PROGRESS_MODE
 import org.videolan.tools.KEY_AUDIO_PLAYER_SHOW_COVER
 import org.videolan.tools.KEY_AUDIO_SHOW_BOOKMARK_MARKERS
-import org.videolan.tools.KEY_AUDIO_SHOW_BOOkMARK_BUTTONS
+import org.videolan.tools.KEY_AUDIO_SHOW_BOOKMARK_BUTTONS
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.KEY_SHOW_TRACK_INFO
 import org.videolan.tools.PREF_PLAYLIST_TIPS_SHOWN
@@ -428,13 +428,13 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private val ctxReceiver: CtxActionReceiver = object : CtxActionReceiver {
         override fun onCtxAction(position: Int, option: ContextOption) {
             if (position in 0 until playlistAdapter.itemCount) when (option) {
-                CTX_SET_RINGTONE -> activity?.setRingtone(playlistAdapter.getItem(position))
+                CTX_SET_RINGTONE -> activity?.setRingtone(playlistAdapter.getItemByPosition(position))
                 CTX_ADD_TO_PLAYLIST -> {
-                    val mw = playlistAdapter.getItem(position)
+                    val mw = playlistAdapter.getItemByPosition(position)
                     requireActivity().addToPlaylist(listOf(mw))
                 }
                 CTX_REMOVE_FROM_PLAYLIST -> view?.let {
-                    val mw = playlistAdapter.getItem(position)
+                    val mw = playlistAdapter.getItemByPosition(position)
                     val message = String.format(getString(R.string.remove_playlist_item), mw.title)
                     UiTools.snackerWithCancel(requireActivity(), message, true, { })  {
                         playlistModel.insertMedia(position, mw)
@@ -446,15 +446,15 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                     playlistModel.stopAfter(pos)
                     playlistAdapter.stopAfter = pos
                 }
-                CTX_INFORMATION -> showInfoDialog(playlistAdapter.getItem(position))
-                CTX_GO_TO_FOLDER -> showParentFolder(playlistAdapter.getItem(position))
+                CTX_INFORMATION -> showInfoDialog(playlistAdapter.getItemByPosition(position))
+                CTX_GO_TO_FOLDER -> requireActivity().showParentFolder(playlistAdapter.getItemByPosition(position))
                 CTX_GO_TO_ALBUM -> {
                     val i = Intent(requireActivity(), HeaderMediaListActivity::class.java)
-                    i.putExtra(AudioBrowserFragment.TAG_ITEM, playlistAdapter.getItem(position).album)
+                    i.putExtra(AudioBrowserFragment.TAG_ITEM, playlistAdapter.getItemByPosition(position).album)
                     startActivity(i)
                 }
                 CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
-                    val artist = playlistAdapter.getItem(position).artist
+                    val artist = playlistAdapter.getItemByPosition(position).artist
                     val i = Intent(requireActivity(), SecondaryActivity::class.java)
                     i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
                     i.putExtra(AudioBrowserFragment.TAG_ITEM, artist)
@@ -463,10 +463,10 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                     startActivity(i)
                 }
                 CTX_FAV_ADD, CTX_FAV_REMOVE -> lifecycleScope.launch {
-                    playlistAdapter.getItem(position).isFavorite = option == CTX_FAV_ADD
+                    playlistAdapter.getItemByPosition(position).isFavorite = option == CTX_FAV_ADD
                     playlistAdapter.notifyItemChanged(position)
                 }
-                CTX_SHARE -> lifecycleScope.launch { (requireActivity() as AppCompatActivity).share(playlistAdapter.getItem(position)) }
+                CTX_SHARE -> lifecycleScope.launch { (requireActivity() as AppCompatActivity).share(playlistAdapter.getItemByPosition(position)) }
                 else -> {}
             }
         }
@@ -514,7 +514,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             binding.previousChapter?.visibility = View.VISIBLE
         }
 
-        if (isShowingCover() && !bookmarkModel.dataset.isEmpty() && settings.getBoolean(KEY_AUDIO_SHOW_BOOkMARK_BUTTONS, true)) {
+        if (isShowingCover() && !bookmarkModel.dataset.isEmpty() && settings.getBoolean(KEY_AUDIO_SHOW_BOOKMARK_BUTTONS, true)) {
             binding.audioForwardBookmark.setVisible()
             binding.audioRewindBookmark.setVisible()
         } else {

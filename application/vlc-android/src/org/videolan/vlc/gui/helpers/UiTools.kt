@@ -116,21 +116,19 @@ import org.videolan.resources.CATEGORY_NOW_PLAYING
 import org.videolan.resources.CATEGORY_NOW_PLAYING_PIP
 import org.videolan.resources.CATEGORY_SONGS
 import org.videolan.resources.EXTRA_PATH
+import org.videolan.resources.HEADER_ADD_STREAM
 import org.videolan.resources.HEADER_DIRECTORIES
-import org.videolan.resources.HEADER_MOVIES
 import org.videolan.resources.HEADER_NETWORK
 import org.videolan.resources.HEADER_PERMISSION
 import org.videolan.resources.HEADER_PLAYLISTS
 import org.videolan.resources.HEADER_SERVER
 import org.videolan.resources.HEADER_STREAM
-import org.videolan.resources.HEADER_TV_SHOW
 import org.videolan.resources.HEADER_VIDEO
 import org.videolan.resources.ID_ABOUT_TV
 import org.videolan.resources.ID_REMOTE_ACCESS
 import org.videolan.resources.ID_SETTINGS
 import org.videolan.resources.ID_SPONSOR
 import org.videolan.resources.TAG_ITEM
-import org.videolan.resources.TV_CONFIRMATION_ACTIVITY
 import org.videolan.resources.util.launchForeground
 import org.videolan.tools.BitmapCache
 import org.videolan.tools.KEY_APP_THEME
@@ -928,36 +926,16 @@ object UiTools {
 
     fun restartDialog(
         activity: Activity,
-        fromLeanback: Boolean = false,
-        leanbackResultCode: Int = 0,
-        leanbackCaller: Any? = null
+        onPositiveClick: (() -> Unit)? = null
     ) {
-
-        if (fromLeanback) {
-            val intent = Intent(Intent.ACTION_VIEW).setClassName(activity, TV_CONFIRMATION_ACTIVITY)
-
-            intent.putExtra(
-                "confirmation_dialog_title",
-                activity.getString(R.string.restart_vlc)
-            )
-            intent.putExtra(
-                "confirmation_dialog_text",
-                activity.getString(R.string.restart_message)
-            )
-            when (leanbackCaller) {
-                is Activity -> leanbackCaller.startActivityForResult(intent, leanbackResultCode)
-                is Fragment -> leanbackCaller.startActivityForResult(intent, leanbackResultCode)
-                is android.app.Fragment -> leanbackCaller.startActivityForResult(intent, leanbackResultCode)
-                else -> throw IllegalStateException("Invalid caller")
-            }
-
-            return
-        }
 
         AlertDialog.Builder(activity)
                 .setTitle(activity.resources.getString(R.string.restart_vlc))
                 .setMessage(activity.resources.getString(R.string.restart_message))
-                .setPositiveButton(R.string.restart_message_OK) { _, _ -> android.os.Process.killProcess(android.os.Process.myPid()) }
+                .setPositiveButton(R.string.restart_message_OK) { _, _ ->
+                    if (onPositiveClick != null) onPositiveClick.invoke()
+                    else android.os.Process.killProcess(android.os.Process.myPid())
+                }
                 .setNegativeButton(R.string.restart_message_Later, null)
                 .create()
                 .show()
@@ -1122,6 +1100,7 @@ fun BaseActivity.applyTheme() {
 }
 
 fun getTvIconRes(mediaLibraryItem: MediaLibraryItem) = when (mediaLibraryItem.itemType) {
+    MediaLibraryItem.TYPE_STORAGE -> R.drawable.ic_folder_big
     MediaLibraryItem.TYPE_ALBUM -> R.drawable.ic_album_big
     MediaLibraryItem.TYPE_ARTIST -> R.drawable.ic_artist_big
     MediaLibraryItem.TYPE_GENRE -> R.drawable.ic_genre_big
@@ -1143,8 +1122,7 @@ fun getTvIconRes(mediaLibraryItem: MediaLibraryItem) = when (mediaLibraryItem.it
             HEADER_SERVER -> R.drawable.ic_network_add_big
             HEADER_STREAM -> R.drawable.ic_stream_big
             HEADER_PLAYLISTS -> R.drawable.ic_playlist_big
-            HEADER_MOVIES, CATEGORY_NOW_PLAYING_PIP -> R.drawable.ic_browser_movie_big
-            HEADER_TV_SHOW -> R.drawable.ic_browser_tvshow_big
+            HEADER_ADD_STREAM -> R.drawable.ic_stream_add
             ID_SETTINGS -> R.drawable.ic_settings_big
             ID_ABOUT_TV -> R.drawable.ic_default_cone
             ID_REMOTE_ACCESS -> R.drawable.ic_remote_access_big

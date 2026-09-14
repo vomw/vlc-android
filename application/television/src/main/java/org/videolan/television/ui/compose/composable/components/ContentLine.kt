@@ -1,0 +1,193 @@
+/*
+ * ************************************************************************
+ *  ContentLine.kt
+ * *************************************************************************
+ * Copyright © 2025 VLC authors and VideoLAN
+ * Author: Nicolas POMEPUY
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ *
+ *
+ */
+
+package org.videolan.television.ui.compose.composable.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import org.videolan.medialibrary.interfaces.Medialibrary
+import org.videolan.medialibrary.media.DummyItem
+import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.television.ui.compose.composable.items.AudioItem
+import org.videolan.television.ui.compose.theme.Transparent
+import org.videolan.television.ui.compose.theme.VlcTVTheme
+import org.videolan.television.ui.compose.theme.WhiteTransparent10
+import org.videolan.television.ui.compose.utils.VlcPreview
+import org.videolan.vlc.R
+import org.videolan.vlc.gui.view.EmptyLoadingState
+import org.videolan.vlc.util.MediaListEntry
+
+@Composable
+fun ContentLine(items: List<MediaLibraryItem>?, entry: MediaListEntry, historyLoading: Boolean?, text: Int, browserRoot: Boolean = false, onItemClick: (Int) -> Unit, titleFocusable: Boolean = true, spannableDescription: Boolean = false, onClick: () -> Unit = {}) {
+    var focused by remember { mutableStateOf(false) }
+    val isWorking by Medialibrary.getState().observeAsState(false)
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged {
+                if (titleFocusable)
+                    focused = it.isFocused
+            }
+            .padding(top = 24.dp)
+            .clip(RoundedCornerShape(50))
+            .background(if (focused) WhiteTransparent10 else Transparent)
+            .combinedClickable(titleFocusable) {
+                onClick()
+            }
+            .focusable(titleFocusable)
+    ) {
+        Text(
+            text = stringResource(text),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier
+                .weight(1F)
+                .padding(start = VlcTVTheme.dimens.itemFocusGlowRadius, end = if (titleFocusable) VlcTVTheme.dimens.itemFocusGlowRadius else 0.dp)
+        )
+        if (titleFocusable)
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                tint = MaterialTheme.colorScheme.onSurface,
+                contentDescription = stringResource(id = text),
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(48.dp)
+                    .padding(end = 16.dp)
+            )
+    }
+    VlcEmptyViewLoader(
+        state = if (historyLoading == true || (items.isNullOrEmpty() && isWorking)) EmptyLoadingState.LOADING else if (items.isNullOrEmpty()) EmptyLoadingState.EMPTY else EmptyLoadingState.NONE,
+        loadingContent = {
+            Row(
+                modifier = Modifier
+                    .padding(top = VlcTVTheme.dimens.itemFocusGlowRadius, start = VlcTVTheme.dimens.itemFocusGlowRadius, end = VlcTVTheme.dimens.itemFocusGlowRadius)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(VlcTVTheme.dimens.itemFocusGlowRadius)
+            ) {
+                repeat(8) { index ->
+                    AudioItemPlaceholder(modifier = Modifier.width(148.dp), inCard = true, isRound = entry == MediaListEntry.ARTISTS || entry == MediaListEntry.GENRES, isFirst = index == 0, isLast = index == 7)
+                }
+            }
+        }
+    ) {
+        LazyRow(
+            contentPadding = PaddingValues(top = VlcTVTheme.dimens.itemFocusGlowRadius, start = VlcTVTheme.dimens.itemFocusGlowRadius, end = VlcTVTheme.dimens.itemFocusGlowRadius),
+            horizontalArrangement = Arrangement.spacedBy(VlcTVTheme.dimens.itemFocusGlowRadius),
+            modifier = Modifier
+                .graphicsLayer(clip = false)
+                .focusGroup()
+        ) {
+            items(items?.size ?: 0) { index ->
+                AudioItem(
+                    audios = items!!,
+                    entry = entry,
+                    index = index,
+                    modifier = Modifier.width(148.dp),
+                    isFirst = index == 0,
+                    isLast = index == (items.size - 1),
+                    spannableDescription = spannableDescription,
+                    browserRoot = browserRoot,
+                    onClick = { onItemClick(index) }
+                )
+            }
+        }
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun ContentLinePreview() {
+    VlcPreview {
+        ContentLine(
+            items = listOf(
+                DummyItem(1, "Item 1", "Description 1"),
+                DummyItem(2, "Item 2", "Description 2"),
+                DummyItem(3, "Item 3", "Description 3")
+            ),
+            entry = MediaListEntry.ALBUMS,
+            historyLoading = false,
+            text = R.string.albums,
+            onItemClick = {},
+        )
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun ContentLineLoadingPreview() {
+    VlcPreview {
+        ContentLine(
+            items = null,
+            entry = MediaListEntry.ALBUMS,
+            historyLoading = true,
+            text = R.string.albums,
+            onItemClick = {},
+        )
+    }
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+private fun ContentLineEmptyPreview() {
+    VlcPreview {
+        ContentLine(
+            items = emptyList(),
+            entry = MediaListEntry.ALBUMS,
+            historyLoading = false,
+            text = R.string.albums,
+            onItemClick = {},
+        )
+    }
+}

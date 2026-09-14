@@ -23,13 +23,25 @@ package org.videolan.vlc.viewmodels.mobile
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.videolan.medialibrary.interfaces.media.Folder
 import org.videolan.medialibrary.interfaces.media.Playlist
+import org.videolan.medialibrary.interfaces.media.VideoGroup
 import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.resources.GROUP_VIDEOS_FOLDER
+import org.videolan.resources.GROUP_VIDEOS_NAME
+import org.videolan.resources.GROUP_VIDEOS_NONE
+import org.videolan.tools.KEY_GROUP_VIDEOS
+import org.videolan.tools.Settings
 import org.videolan.vlc.gui.PlaylistFragment
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
 import org.videolan.vlc.providers.medialibrary.PlaylistsProvider
+import org.videolan.vlc.util.MediaListEntry
 import org.videolan.vlc.viewmodels.MedialibraryViewModel
 
 class PlaylistsViewModel(context: Context, type: Playlist.Type) : MedialibraryViewModel(context) {
@@ -40,6 +52,9 @@ class PlaylistsViewModel(context: Context, type: Playlist.Type) : MedialibraryVi
 
     init {
         watchPlaylists()
+        watchFor(MediaListEntry.AUDIO_PLAYLISTS)
+        watchFor(MediaListEntry.ALL_PLAYLISTS)
+        watchFor(MediaListEntry.VIDEO_PLAYLISTS)
         providerInCard = settings.getBoolean(displayModeKey, providerInCard)
     }
 
@@ -52,6 +67,24 @@ class PlaylistsViewModel(context: Context, type: Playlist.Type) : MedialibraryVi
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")
             return PlaylistsViewModel(context.applicationContext, type) as T
+        }
+    }
+
+    companion object {
+        val PLAYLIST_TYPE = object : CreationExtras.Key<Playlist.Type> {}
+
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                // Get the dependency in your factory
+                val application = checkNotNull(this[APPLICATION_KEY])
+                val playlistType = checkNotNull(this[PLAYLIST_TYPE])
+
+
+                PlaylistsViewModel(
+                    application,
+                    playlistType
+                )
+            }
         }
     }
 }

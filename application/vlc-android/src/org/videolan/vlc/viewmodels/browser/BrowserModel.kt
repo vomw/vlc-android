@@ -26,7 +26,11 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,6 +38,7 @@ import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.resources.util.getFromMl
 import org.videolan.tools.CoroutineContextProvider
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
@@ -45,7 +50,10 @@ import org.videolan.vlc.providers.NetworkProvider
 import org.videolan.vlc.providers.PickerType
 import org.videolan.vlc.providers.StorageProvider
 import org.videolan.vlc.repository.DirectoryRepository
+import org.videolan.vlc.util.MediaListEntry
 import org.videolan.vlc.viewmodels.BaseModel
+import org.videolan.vlc.viewmodels.DisplaySettingsCallBackDelegate
+import org.videolan.vlc.viewmodels.IDisplaySettingsCallBackHandler
 import org.videolan.vlc.viewmodels.tv.TvBrowserModel
 
 const val TYPE_FILE = 0L
@@ -64,9 +72,24 @@ open class BrowserModel(
 ) : BaseModel<MediaLibraryItem>(
         context, coroutineContextProvider),
         TvBrowserModel<MediaLibraryItem>,
+        IDisplaySettingsCallBackHandler by DisplaySettingsCallBackDelegate(),
         IPathOperationDelegate by PathOperationDelegate() {
     override var currentItem: MediaLibraryItem? = null
     override var nbColumns: Int = 0
+    var needToRefreshMeta = false
+
+    init {
+        viewModelScope.registerDisplaySettingsCallBacks(
+            refresh = {
+                refresh()
+            },
+            changeGrouping = { },
+            getBrowserModel = { this },
+            getAllProviders = {
+                arrayOf(provider)
+            })
+        watchFor(MediaListEntry.BROWSER)
+    }
 
     override val provider: BrowserProvider = when (type) {
         TYPE_PICKER -> FilePickerProvider(context, dataset, url, pickerType = pickerType)
@@ -125,6 +148,16 @@ open class BrowserModel(
             settings.putSingle("${sortKey}_desc", desc)
         }
     }
+
+    fun sortBy(sort:Int, desc: Boolean) {
+        this.sort = sort
+        this.desc = desc
+        provider.sort = sort
+        provider.desc = desc
+        settings.putSingle(sortKey, sort)
+        settings.putSingle("${sortKey}_desc", desc)
+    }
+
 
     fun saveList(media: MediaWrapper) = provider.saveList(media)
 
@@ -185,6 +218,45 @@ open class BrowserModel(
         Settings.getInstance(context).edit {
             putInt(sortKey, sort)
             putBoolean("${sortKey}_desc", desc)
+        }
+    }
+
+    /**
+     * Get the media metadata from ML if needed
+     * This is useful in case a playback has already been running since this fragment has been started
+     * As the ML events are not listened to refresh the browser content, it will reload the ML metadata
+     * for this media to ensure the progress (and other metadata) are up to date
+     *
+     * @param mw the [MediaWrapper] to look into
+     * @return a [MediaWrapper] with up to date ML metadata
+     */
+    suspend fun getMediaWithMeta(context: Context, mw: MediaWrapper): MediaWrapper {
+        return if (!needToRefreshMeta) mw else context.getFromMl {
+            getMedia(mw.uri) ?: mw
+        }
+    }
+
+    companion object {
+        // Define a custom key for your dependency
+        val URL_KEY = object : CreationExtras.Key<String?> {}
+        val TYPE_KEY = object : CreationExtras.Key<Long> {}
+        val SHOW_DUMMY_KEY = object : CreationExtras.Key<Boolean> {}
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                // Get the dependency in your factory
+                val application = checkNotNull(this[APPLICATION_KEY])
+                val url = this[URL_KEY]
+                val type = checkNotNull(this[TYPE_KEY])
+                val showDummy = checkNotNull(this[SHOW_DUMMY_KEY])
+
+
+                BrowserModel(
+                    application,
+                    url,
+                    type,
+                    showDummy
+                )
+            }
         }
     }
 }

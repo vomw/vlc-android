@@ -547,7 +547,7 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
                         R.id.action_remove_from_group -> viewModel.removeFromGroup(list)
                         R.id.action_ungroup -> viewModel.ungroup(list)
                         R.id.action_add_to_group -> addToGroup(list)
-                        R.id.action_mode_go_to_folder -> (list.first() as? MediaWrapper)?.let { showParentFolder(it) }
+                        R.id.action_mode_go_to_folder -> (list.first() as? MediaWrapper)?.let { requireActivity().showParentFolder(it) }
                         R.id.action_mode_favorite_add -> lifecycleScope.launch { viewModel.changeFavorite(list, true)}
                         R.id.action_mode_favorite_remove -> lifecycleScope.launch { viewModel.changeFavorite(list, false)}
                         else -> {
@@ -582,7 +582,7 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
                     R.id.action_ungroup -> viewModel.ungroup(selection.first() as VideoGroup)
                     R.id.action_rename -> renameGroup(selection.first() as VideoGroup)
                     R.id.action_add_to_group -> addToGroup(selection)
-                    R.id.action_mode_go_to_folder -> (selection.first() as? MediaWrapper)?.let { showParentFolder(it) }
+                    R.id.action_mode_go_to_folder -> (selection.first() as? MediaWrapper)?.let { requireActivity().showParentFolder(it) }
                     R.id.action_video_delete -> removeItems(selection.getAll())
                     R.id.action_mode_favorite_add -> lifecycleScope.launch { viewModel.changeFavorite(selection.getAll(), true)}
                     R.id.action_mode_favorite_remove -> lifecycleScope.launch { viewModel.changeFavorite(selection.getAll(), false)}
@@ -613,7 +613,7 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
     override fun onCtxAction(position: Int, option: ContextOption) {
         if (position >= videoListAdapter.itemCount) return
         val activity = activity ?: return
-        when (val media = videoListAdapter.getItem(position)) {
+        when (val media = videoListAdapter.getItemByPosition(position)) {
             is MediaWrapper -> when (option) {
                 CTX_PLAY_FROM_START -> viewModel.playVideo(activity, media, position, fromStart = true)
                 CTX_PLAY_AS_AUDIO -> viewModel.playAudio(activity, media)
@@ -643,7 +643,7 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
                     media.isFavorite = option == CTX_FAV_ADD
                     withContext(Dispatchers.Main) { videoListAdapter.notifyItemChanged(position) }
                 }
-                CTX_GO_TO_FOLDER -> showParentFolder(media)
+                CTX_GO_TO_FOLDER -> requireActivity().showParentFolder(media)
                 CTX_ADD_SHORTCUT -> lifecycleScope.launch { requireActivity().createShortcut(media)}
                 else -> {}
             }
@@ -692,7 +692,7 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
     private val thumbObs = Observer<MediaWrapper> { media ->
         if (!::videoListAdapter.isInitialized || viewModel.provider !is VideosProvider) return@Observer
         val position = viewModel.provider.pagedList.value?.indexOf(media) ?: return@Observer
-        val item = videoListAdapter.getItem(position) as? MediaWrapper
+        val item = videoListAdapter.getItemByPosition(position) as? MediaWrapper
         item?.run {
             artworkURL = media.artworkURL
             videoListAdapter.notifyItemChanged(position)
