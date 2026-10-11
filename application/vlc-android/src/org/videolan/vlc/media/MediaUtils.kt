@@ -37,6 +37,7 @@ import org.videolan.medialibrary.interfaces.media.Artist
 import org.videolan.medialibrary.interfaces.media.Folder
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.interfaces.media.Playlist
+import org.videolan.medialibrary.interfaces.media.Subscription
 import org.videolan.medialibrary.interfaces.media.VideoGroup
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.ACTION_OPEN_CONTENT
@@ -101,6 +102,7 @@ object MediaUtils {
                 }
             }
             is Playlist -> Runnable { deletePlaylist(item) }
+            is Subscription -> Runnable { deleteSubscription(item) }
             else -> Runnable { onDeleteFailed.invoke(item) }
         }
 
@@ -474,7 +476,9 @@ object MediaUtils {
         Log.e(TAG, "retrieveMediaTitle: e: $e")
     }
 
-    fun deletePlaylist(playlist: Playlist) = AppScope.launch(Dispatchers.IO) { playlist.delete() }
+    private fun deletePlaylist(playlist: Playlist) = AppScope.launch(Dispatchers.IO) { playlist.delete() }
+
+    private fun deleteSubscription(subscription: Subscription) = AppScope.launch(Dispatchers.IO) { subscription.delete() }
 
     fun openMediaNoUiFromTvContent(context: Context, data: Uri?) = AppScope.launch {
         val id = data?.lastPathSegment ?: return@launch

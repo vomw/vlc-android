@@ -78,7 +78,7 @@ mediaToMediaWrapper(JNIEnv* env, fields *fields, medialibrary::MediaPtr const& m
                           title.get(), filename.get(), (jlong) artistId, (jlong) albumArtistId, artist.get(), genre.get(), (jlong) albumId, album.get(),
                           albumArtist.get(), width, height, thumbnail.get(),
                           audioTrack, spuTrack, trackNumber, discNumber, (jlong) files.at(0)->lastModificationDate(),
-                          (jlong) mediaPtr->playCount(), hasThumbnail, isFavorite, mediaPtr->releaseDate(), isPresent, (jlong) mediaPtr->insertionDate())
+                          (jlong) mediaPtr->playCount(), hasThumbnail, isFavorite, mediaPtr->releaseDate(), isPresent, (jlong) mediaPtr->insertionDate(), mediaPtr->nbSubscriptions())
     };
 }
 
@@ -243,10 +243,11 @@ utils::jni::object
 convertSubscriptionObject(JNIEnv* env, fields *fields, medialibrary::SubscriptionPtr const& subsPtr)
 {
     auto name = vlcNewStringUTF(env, subsPtr->name().c_str());
+    auto artworkMRL = vlcNewStringUTF(env, subsPtr->artworkMRL().c_str());
     auto parent = subsPtr->parent();
     jlong parentId = (parent != nullptr) ? (jlong) parent->id() : 0;
     return utils::jni::object{ env, env->NewObject(fields->Subscription.clazz, fields->Subscription.initID,
-            (jlong) subsPtr->id(), (jint) subsPtr->service(), name.get(), parentId)
+            (jlong) subsPtr->id(), (jint) subsPtr->service(), name.get(), (jlong) parentId, (jint) subsPtr->nbMedia(), (jint) subsPtr->nbUnplayedMedia(), artworkMRL.get())
     };
 }
 
@@ -254,7 +255,7 @@ utils::jni::object
 convertServiceObject(JNIEnv* env, fields *fields, medialibrary::ServicePtr const& servicePtr)
 {
     return utils::jni::object{ env, env->NewObject(fields->Service.clazz,
-            fields->Service.initID, (jint) servicePtr->type())
+            fields->Service.initID, (jint) servicePtr->type(), (jint) servicePtr->nbMedia(), (jint) servicePtr->nbUnplayedMedia(), (jint) servicePtr->nbSubscriptions())
     };
 }
 

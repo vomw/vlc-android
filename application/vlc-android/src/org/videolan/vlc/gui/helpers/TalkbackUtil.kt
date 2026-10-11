@@ -31,6 +31,7 @@ import org.videolan.medialibrary.interfaces.media.Folder
 import org.videolan.medialibrary.interfaces.media.Genre
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.interfaces.media.Playlist
+import org.videolan.medialibrary.interfaces.media.Subscription
 import org.videolan.medialibrary.interfaces.media.VideoGroup
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.medialibrary.media.Storage
@@ -73,6 +74,9 @@ object TalkbackUtil {
 
     fun getPlaylist(context: Context, playlist: Playlist) = context.getString(R.string.talkback_playlist, playlist.title)
             .talkbackAppend(context.resources.getQuantityString(R.plurals.track_quantity, playlist.tracksCount, playlist.tracksCount))
+
+    fun getSubscription(context: Context, subscription: Subscription) = context.getString(R.string.talkback_playlist, subscription.title)
+            .talkbackAppend(context.resources.getQuantityString(R.plurals.track_quantity, subscription.tracksCount, subscription.tracksCount))
 
     fun getArtist(context: Context, artist: String?) = if (artist == null) "" else context.getString(R.string.talkback_artist, artist)
     fun getTrackNumber(context: Context, item: MediaWrapper) = context.getString(R.string.talkback_track_number, item.trackNumber.toString())

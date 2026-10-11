@@ -38,6 +38,7 @@ import android.net.Uri
 import android.util.Patterns
 import android.util.TypedValue
 import android.view.View
+import androidx.annotation.AttrRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
@@ -85,6 +86,15 @@ fun <T> CoroutineScope.conflatedActor(time: Long = 2000L, action: suspend (T) ->
         action(evt)
         if (time > 0L) delay(time)
     }
+}
+
+fun Context.getColorFromAttr(
+        @AttrRes attrColor: Int,
+        typedValue: TypedValue = TypedValue(),
+        resolveRefs: Boolean = true
+): Int {
+    theme.resolveAttribute(attrColor, typedValue, resolveRefs)
+    return typedValue.data
 }
 
 fun Context.copy(label: String, text: String) {

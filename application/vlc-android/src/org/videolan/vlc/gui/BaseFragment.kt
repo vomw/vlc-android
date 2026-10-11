@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.Menu
 import android.view.MotionEvent
@@ -80,12 +81,14 @@ abstract class BaseFragment : Fragment(), ActionMode.Callback {
         val fab = requireActivity().findViewById<FloatingActionButton?>(R.id.fab)
         ((fab?.layoutParams as? CoordinatorLayout.LayoutParams)?.behavior as? FloatingActionButtonBehavior)?.shouldNeverShow = !hasFAB() && requireActivity() is MainActivity
     }
-
+private val TAG = this::class.java.name
     override fun onStart() {
         super.onStart()
         updateActionBar()
         setFabPlayVisibility(hasFAB())
-        fabPlay?.setOnClickListener { v -> onFabPlayClick(v) }
+        fabPlay?.setOnClickListener { v -> 
+            Log.d(TAG, "onStart: skbench: setOnClickListener")
+            onFabPlayClick(v) }
     }
 
     private fun updateFabPlayView() {

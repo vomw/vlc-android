@@ -258,6 +258,12 @@ AndroidMediaLibrary::searchVideo(const std::string& query, const medialibrary::Q
 }
 
 medialibrary::Query<medialibrary::IMedia>
+AndroidMediaLibrary::searchSubscriptionMedia(const std::string& query, const medialibrary::QueryParameters* params)
+{
+    return p_ml->searchSubscriptionMedia(query, params);
+}
+
+medialibrary::Query<medialibrary::IMedia>
 AndroidMediaLibrary::searchFromAlbum( int64_t albumId, const std::string& query, const medialibrary::QueryParameters* params )
 {
     auto album = p_ml->album(albumId);
@@ -276,6 +282,13 @@ AndroidMediaLibrary::searchAlbumsFromArtist( int64_t artistId, const std::string
 {
     auto artist = p_ml->artist(artistId);
     return artist == nullptr ? nullptr : artist->searchAlbums(query, params);
+}
+
+medialibrary::Query<medialibrary::ISubscription>
+AndroidMediaLibrary::searchSubscriptionsFromService( medialibrary::IService::Type type, const std::string& query, const medialibrary::QueryParameters* params )
+{
+    auto service = p_ml->service(type);
+    return service == nullptr ? nullptr : service->searchSubscription(query, params);
 }
 
 medialibrary::Query<medialibrary::IMedia>
@@ -499,6 +512,13 @@ AndroidMediaLibrary::mediaFromPlaylist( int64_t playlistId , const medialibrary:
     return playlist == nullptr ? nullptr : playlist->media(params);
 }
 
+
+medialibrary::Query<medialibrary::IMedia>
+AndroidMediaLibrary::subscriptionMedia(medialibrary::QueryParameters* params)
+{
+    return p_ml->subscriptionMedia(params);
+}
+
 bool
 AndroidMediaLibrary::playlistAppend(int64_t playlistId, int64_t mediaId) {
     medialibrary::PlaylistPtr playlist = p_ml->playlist(playlistId);
@@ -584,6 +604,13 @@ AndroidMediaLibrary::searchFromMediaGroup( const int64_t groupId, const std::str
     return group == nullptr ? nullptr : group->searchMedia(query, medialibrary::IMedia::Type::Video, params);
 }
 
+medialibrary::Query<medialibrary::IMedia>
+AndroidMediaLibrary::searchMediaFromSubscription( const int64_t subId, const std::string& query, const medialibrary::QueryParameters* params )
+{
+    auto subscription = p_ml->subscription(subId);
+    return subscription == nullptr ? nullptr : subscription->search(query, params);
+}
+
 bool
 AndroidMediaLibrary::groupAddId( const int64_t groupId, const int64_t mediaId )
 {
@@ -656,6 +683,13 @@ medialibrary::MediaGroupPtr
 AndroidMediaLibrary::createMediaGroup( const std::vector<int64_t> mediaIds )
 {
     return p_ml->createMediaGroup(mediaIds);
+}
+
+
+bool
+AndroidMediaLibrary::subscriptionDelete( int64_t subscriptionId )
+{
+    return p_ml->removeSubscription(subscriptionId);
 }
 
 void
@@ -1087,6 +1121,33 @@ void AndroidMediaLibrary::onFoldersDeleted( std::set<int64_t> foldersIds )
     }
 }
 
+void AndroidMediaLibrary::onSubscriptionsAdded( std::vector<medialibrary::SubscriptionPtr> mediaGroups )
+{
+    JNIEnv *env = getEnv();
+    if (env != nullptr && weak_thiz)
+    {
+        env->CallVoidMethod(weak_thiz, p_fields->MediaLibrary.onSubscriptionsAddedId);
+    }
+}
+
+void AndroidMediaLibrary::onSubscriptionsModified( std::set<int64_t> subscriptionsIds )
+{
+    JNIEnv *env = getEnv();
+    if (env != nullptr && weak_thiz)
+    {
+        env->CallVoidMethod(weak_thiz, p_fields->MediaLibrary.onSubscriptionsModifiedId);
+    }
+}
+
+void AndroidMediaLibrary::onSubscriptionsDeleted( std::set<int64_t> subscriptionsIds )
+{
+    JNIEnv *env = getEnv();
+    if (env != nullptr && weak_thiz)
+    {
+        env->CallVoidMethod(weak_thiz, p_fields->MediaLibrary.onSubscriptionsDeletedId);
+    }
+}
+
 void AndroidMediaLibrary::onBookmarksAdded( std::vector<medialibrary::BookmarkPtr> )
 {
 }
@@ -1242,18 +1303,6 @@ bool
 AndroidMediaLibrary::refreshAllSubscriptions()
 {
     return p_ml->refreshAllSubscriptions();
-}
-
-void AndroidMediaLibrary::onSubscriptionsAdded( std::vector<medialibrary::SubscriptionPtr> )
-{
-}
-
-void AndroidMediaLibrary::onSubscriptionsModified( std::set<int64_t> )
-{
-}
-
-void AndroidMediaLibrary::onSubscriptionsDeleted( std::set<int64_t> )
-{
 }
 
 void AndroidMediaLibrary::onSubscriptionNewMedia( std::set<int64_t> )

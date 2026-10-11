@@ -98,6 +98,9 @@ class StreamsModel(context: Context, private val showDummy: Boolean = false, cor
         }
     }
 
+    override fun watchSubscriptions() {
+    }
+
     class Factory(private val context: Context, private val showDummy: Boolean = false) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")

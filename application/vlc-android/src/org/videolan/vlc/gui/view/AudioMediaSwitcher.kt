@@ -24,6 +24,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

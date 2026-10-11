@@ -56,6 +56,7 @@ import org.videolan.vlc.gui.PlaylistFragment
 import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.browser.BaseBrowserFragment
 import org.videolan.vlc.gui.browser.MainBrowserFragment
+import org.videolan.vlc.gui.discover.DiscoverBrowserFragment
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.video.VideoBrowserFragment
 import org.videolan.vlc.util.getScreenWidth
@@ -102,7 +103,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
             R.id.nav_directories -> MainBrowserFragment().apply {
                 arguments = bundleOf(EXTRA_FOR_ESPRESSO to forExpresso)
             }
-            R.id.nav_playlists -> PlaylistFragment()
+            R.id.nav_discover -> DiscoverBrowserFragment()
             R.id.nav_more -> MoreFragment()
             else -> VideoBrowserFragment()
         }

@@ -280,18 +280,23 @@ fi
 
 
 if [ "$FORCE_VLC_4" = 1 ]; then
-    LIBVLCJNI_TESTED_HASH=a8d53a9151d7e4a9a5dfd0a5eb1cd92669afdc21
+    LIBVLCJNI_TESTED_HASH=1a39aad32e2975c231548f3c256d994b4676d33d
     LIBVLCJNI_BRANCH="master"
 else
     LIBVLCJNI_TESTED_HASH=0b8dc65efb203c86a0476bc337ddd99ecf1c0ef6
     LIBVLCJNI_BRANCH="libvlcjni-3.x"
 fi
-LIBVLCJNI_REPOSITORY=https://code.videolan.org/videolan/libvlcjni.git
+LIBVLCJNI_REPOSITORY=https://code.videolan.org/Skantes/libvlcjni.git
 
 : ${VLC_LIBJNI_PATH:="$(pwd -P)/libvlcjni"}
 
 if [ ! -d "$VLC_LIBJNI_PATH" ] || [ ! -d "$VLC_LIBJNI_PATH/.git" ]; then
     diagnostic "libvlcjni sources: not found, cloning"
+    if [ "$FORCE_VLC_4" = 1 ]; then
+        branch="podcasts-4"
+    else
+        branch="libvlcjni-3.x"
+    fi
     if [ ! -d "$VLC_LIBJNI_PATH" ]; then
         git clone --single-branch --branch ${LIBVLCJNI_BRANCH} "${LIBVLCJNI_REPOSITORY}"
         cd libvlcjni

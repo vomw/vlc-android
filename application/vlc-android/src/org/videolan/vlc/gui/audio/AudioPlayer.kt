@@ -34,6 +34,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -494,6 +495,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     override fun getLifeCycle() = this.lifecycle
 
     private suspend fun doUpdate() {
+        Log.d(TAG, "doUpdate: skbench: ")
         if (isVisible && playlistModel.switchToVideo()) return
         updatePlayPause()
         updateShuffleMode()

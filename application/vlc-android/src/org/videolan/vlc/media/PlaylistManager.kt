@@ -1,6 +1,7 @@
 package org.videolan.vlc.media
 
 import android.content.Intent
+import android.net.Uri
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
@@ -122,6 +123,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         var skipMediaUpdateRefresh = false
         private val mediaList = MediaWrapperList()
         fun hasMedia() = mediaList.size() != 0
+        fun hasMedia(uri:Uri) = mediaList.copy.any { it.uri == uri }
         val repeating = MutableStateFlow(PlaybackStateCompat.REPEAT_MODE_NONE)
         val shuffling = MutableStateFlow(false)
         var playingAsAudio = false

@@ -110,15 +110,20 @@ cd ${SRC_DIR}
 # The CI will always use this block
 if [ ! -d "${MEDIALIBRARY_MODULE_DIR}/medialibrary" ]; then
   echo -e "\e[1m\e[32mmedialibrary source not found, cloning\e[0m"
-  git clone http://code.videolan.org/videolan/medialibrary.git "${MEDIALIBRARY_MODULE_DIR}/medialibrary"
+  git clone http://code.videolan.org/Skantes/medialibrary.git "${MEDIALIBRARY_MODULE_DIR}/medialibrary"
   avlc_checkfail "medialibrary source: git clone failed"
   cd ${MEDIALIBRARY_MODULE_DIR}/medialibrary
-  git reset --hard ${MEDIALIBRARY_HASH}
+#   git reset --hard ${MEDIALIBRARY_HASH}
+  git fetch --all --prune
+  git checkout podcasts
   avlc_checkfail "medialibrary source: Failed to switch to expected commit hash"
   git submodule update --init libvlcpp
   # TODO: remove when switching to VLC 4.0
   cd libvlcpp
   git am ${SRC_DIR}/buildsystem/patches/libvlcpp/*
+  git remote add skantes git@code.videolan.org:Skantes/libvlcpp.git
+  git fetch --all --prune
+  git cherry-pick dfbc3599c8c991a9f0f905f2a1a9d3d9d4214793
 elif [ "$RESET" = "1" ]; then
     cd ${SRC_DIR}/medialibrary/medialibrary
     git fetch --all --tags

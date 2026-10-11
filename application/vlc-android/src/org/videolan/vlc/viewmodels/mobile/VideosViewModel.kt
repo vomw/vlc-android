@@ -240,6 +240,9 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
             else -> {}
         }
     }
+
+    override fun watchSubscriptions() {
+    }
 }
 
 enum class VideoGroupingType {

@@ -62,7 +62,9 @@ enum class ContextOption : Flag {
     CTX_GO_TO_ALBUM,
     CTX_GO_TO_ARTIST,
     CTX_GO_TO_ALBUM_ARTIST,
-    CTX_QUICK_PLAY;
+    CTX_QUICK_PLAY,
+    CTX_UNSUBSCRIBE,
+    CTX_OPEN_PODCAST;
 
     override fun toLong() = 1L shl this.ordinal
 
@@ -102,6 +104,10 @@ enum class ContextOption : Flag {
         fun createCtxFolderFlags() = createBaseFlags().apply {
             remove(CTX_ADD_SHORTCUT)
             addAll(CTX_BAN_FOLDER, CTX_MARK_ALL_AS_PLAYED, CTX_MARK_ALL_AS_UNPLAYED, CTX_PLAY_ALL)
+        }
+
+        fun createCtxFeedFlags() = createBaseFlags().apply {
+            addAll(CTX_PLAY, CTX_PLAY_NEXT, CTX_INFORMATION, CTX_MARK_AS_PLAYED)
         }
     }
 }
