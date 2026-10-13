@@ -27,6 +27,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
@@ -70,13 +71,21 @@ class OtgAccess : BaseHeadlessFragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        if (intent != null && requestCode == SAF_REQUEST) otgRoot.value = intent.data
-        else super.onActivityResult(requestCode, resultCode, intent)
+        if (intent != null && requestCode == SAF_REQUEST) {
+            intent.data?.let { uri ->
+                val uuid = uuidOf(uri)
+                uuid?.let { otgRoots.value += (it to uri) }
+            }
+        } else super.onActivityResult(requestCode, resultCode, intent)
         exit()
     }
 
     companion object {
-        val otgRoot = MutableStateFlow<Uri?>(null)
+        val otgRoots = MutableStateFlow<Map<String, Uri>>(emptyMap())
+
+        // get volume uuid from uri like content://…/tree/1234-5678
+        fun uuidOf(uri: Uri): String? =
+                runCatching { DocumentsContract.getTreeDocumentId(uri).substringBefore(':') }.getOrNull()
     }
 }
 
@@ -85,11 +94,14 @@ fun FragmentActivity.requestOtgRoot() {
 }
 
 @WorkerThread
-fun getDocumentFiles(context: Context, path: String) : List<MediaWrapper>? {
-    val rootUri = OtgAccess.otgRoot.value ?: return null
+fun getDocumentFiles(context: Context, uri: Uri) : List<MediaWrapper>? {
+    // an otg://<uuid> root carries the uuid in its path; a content:// uri encodes it in the tree id.
+    val uuid = if (uri.scheme == OTG_SCHEME) uri.toString().substringAfterLast('/') else OtgAccess.uuidOf(uri)
+    val rootUri = uuid?.let { OtgAccess.otgRoots.value[it] }
+    if (rootUri == null) return null
     var documentFile = DocumentFile.fromTreeUri(context, rootUri)
 
-    val parts = path.substringAfterLast(':').split("/".toRegex()).dropLastWhile { it.isEmpty() }
+    val parts = (uri.path?.substringAfterLast(':') ?: "").split("/".toRegex()).dropLastWhile { it.isEmpty() }
     for (part in parts) {
         if (part == "") continue
         documentFile = documentFile?.findFile(part)

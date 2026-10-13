@@ -50,7 +50,6 @@ import org.videolan.resources.util.parcelable
 import org.videolan.tools.*
 import org.videolan.tools.livedata.LiveDataset
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.helpers.hf.OtgAccess
 import java.lang.ref.WeakReference
 
 private const val TAG = "VLC/ExternalMonitor"
@@ -104,7 +103,6 @@ object ExternalMonitor : BroadcastReceiver(), DefaultLifecycleObserver, Coroutin
                 }
             }
             UsbManager.ACTION_USB_DEVICE_DETACHED -> if (intent.hasExtra(UsbManager.EXTRA_DEVICE)) {
-                OtgAccess.otgRoot.value = null
                 val device = intent.parcelable<UsbDevice>(UsbManager.EXTRA_DEVICE)
                 device?.let { devices.remove(it) }
             }

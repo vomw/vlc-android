@@ -39,9 +39,9 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
-import org.videolan.medialibrary.media.MediaWrapperImpl
 import org.videolan.resources.EXTRA_FOR_ESPRESSO
 import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_BROWSE_NETWORK
@@ -106,6 +106,7 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
     private val containerAdapterAssociation = HashMap<MainBrowserContainer, Pair<BaseBrowserAdapter, ViewModel>>()
 
     private var requiringOtg = false
+    private var requiringOtgUuid: String? = null
 
     private var displayInList = false
     private val displayInListKey = "main_browser_fragment_display_mode"
@@ -304,15 +305,17 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
 
     override fun onResume() {
         super.onResume()
-        if (requiringOtg && OtgAccess.otgRoot.value != null) {
+        val rootUri = requiringOtgUuid?.let { OtgAccess.otgRoots.value[it] }
+        if (requiringOtg && rootUri != null) {
             val intent = Intent(requireActivity().applicationContext, SecondaryActivity::class.java)
-            val otgMedia = MediaWrapperImpl("otg://".toUri())
+            val otgMedia = MLServiceLocator.getAbstractMediaWrapper(rootUri).apply { type = MediaWrapper.TYPE_DIR }
             otgMedia.title = getString(R.string.otg_device_title)
             intent.putExtra(KEY_MEDIA, otgMedia)
             intent.putExtra("fragment", SecondaryActivity.FILE_BROWSER)
             startActivity(intent)
         }
         requiringOtg = false
+        requiringOtgUuid = null
     }
 
     private fun updateNetworkEmptyView(emptyLoading: EmptyLoadingStateView) {
@@ -397,18 +400,25 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
                     invalidateActionMode()
                 }
             } else {
+                var otgItem: MediaWrapper? = null
                 if (item.itemType == MediaLibraryItem.TYPE_MEDIA) {
-                    if ("otg://" == item.location) {
-                        val rootUri = OtgAccess.otgRoot.value
+                    if (item.location.startsWith("$OTG_SCHEME://")) {
+                        val uuid = item.location.substringAfterLast('/')
+                        val rootUri = OtgAccess.otgRoots.value[uuid]
                         if (rootUri == null) {
                             requiringOtg = true
+                            requiringOtgUuid = uuid
                             requireActivity().requestOtgRoot()
                             return
+                        }
+                        otgItem = MLServiceLocator.getAbstractMediaWrapper(rootUri).apply {
+                            type = MediaWrapper.TYPE_DIR
+                            title = item.title
                         }
                     }
                 }
                 val intent = Intent(requireActivity().applicationContext, SecondaryActivity::class.java)
-                intent.putExtra(KEY_MEDIA, item)
+                intent.putExtra(KEY_MEDIA, otgItem ?: item)
                 intent.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
                 startActivity(intent)
             }
