@@ -115,6 +115,7 @@ import org.videolan.tools.KEY_REMOTE_ACCESS_LAST_STATE_STOPPED
 import org.videolan.tools.REMOTE_ACCESS_NETWORK_BROWSER_CONTENT
 import org.videolan.tools.Settings
 import org.videolan.tools.SingletonHolder
+import org.videolan.tools.canAccessLocalNetwork
 import org.videolan.tools.putSingle
 import org.videolan.vlc.DebugLogService
 import org.videolan.vlc.PlaybackService
@@ -295,7 +296,7 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
 
             }, browserHandler)
             try {
-                mediaBrowser.discoverNetworkShares()
+                if (context.canAccessLocalNetwork()) mediaBrowser.discoverNetworkShares()
                 while (!finished) {
                     delay(1000)
                 }

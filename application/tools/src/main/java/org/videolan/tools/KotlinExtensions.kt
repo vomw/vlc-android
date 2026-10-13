@@ -35,10 +35,12 @@ import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.os.Build
 import android.util.Patterns
 import android.util.TypedValue
 import android.view.View
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -61,6 +63,10 @@ fun <T> List<T>.getposition(target: T): Int {
 fun isAppStarted() = ProcessLifecycleOwner.get().isStarted()
 
 fun LifecycleOwner.isStarted() = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+
+fun Context.canAccessLocalNetwork(): Boolean {
+    return Build.VERSION.SDK_INT < 37 || ContextCompat.checkSelfPermission(this, "android.permission.ACCESS_LOCAL_NETWORK") == PackageManager.PERMISSION_GRANTED
+}
 
 fun View.isVisible() = visibility == View.VISIBLE
 fun View.isInvisible() = visibility == View.INVISIBLE

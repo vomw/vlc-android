@@ -91,6 +91,7 @@ import org.videolan.tools.KEY_MEDIALIBRARY_AUTO_RESCAN
 import org.videolan.tools.KEY_MEDIALIBRARY_SCAN
 import org.videolan.tools.ML_SCAN_OFF
 import org.videolan.tools.Settings
+import org.videolan.tools.canAccessLocalNetwork
 import org.videolan.tools.getContextWithLocale
 import org.videolan.tools.localBroadcastManager
 import org.videolan.tools.removeFileScheme
@@ -172,6 +173,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
         NotificationHelper.createNotificationChannels(applicationContext)
         if (AndroidUtil.isOOrLater) forceForeground()
         medialibrary = Medialibrary.getInstance()
+        medialibrary.setDiscoverNetworkEnabled(canAccessLocalNetwork())
         medialibrary.addDeviceDiscoveryCb(this@MediaParsingService)
         val filter = IntentFilter()
         filter.addAction(ACTION_PAUSE_SCAN)
@@ -313,6 +315,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
     }
 
     private fun setupMedialibrary(upgrade: Boolean, parse: Boolean, removeDevices:Boolean) {
+        medialibrary.setDiscoverNetworkEnabled(canAccessLocalNetwork())
         if (medialibrary.isInitiated) {
             medialibrary.resumeBackgroundOperations()
             if (parse && !scanActivated) actions.trySend(StartScan(upgrade))
@@ -552,7 +555,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
                     addDevices(context, action.parse)
                     val initCode = medialibrary.init(context)
                     medialibrary.setLibVLCInstance((VLCInstance.getInstance(context) as LibVLC).instance)
-                    medialibrary.setDiscoverNetworkEnabled(true)
+                    medialibrary.setDiscoverNetworkEnabled(context.canAccessLocalNetwork())
                     if (initCode == Medialibrary.ML_INIT_DB_UNRECOVERABLE) {
                         throw IllegalStateException("Medialibrary DB file is corrupted and unrecoverable")
                     } else  if (initCode != Medialibrary.ML_INIT_ALREADY_INITIALIZED) {
@@ -565,6 +568,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
             is StartScan -> {
                 scanActivated = true
                 addDevices(this@MediaParsingService, removeDevices = false)
+                medialibrary.setDiscoverNetworkEnabled(canAccessLocalNetwork())
                 startScan(false, action.upgrade)
             }
             UpdateStorages -> updateStorages()

@@ -34,8 +34,10 @@ import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.tools.KEY_BROWSE_NETWORK
 import org.videolan.tools.NetworkMonitor
 import org.videolan.tools.Settings
+import org.videolan.tools.canAccessLocalNetwork
 import org.videolan.tools.livedata.LiveDataset
 import org.videolan.vlc.R
+import org.videolan.vlc.util.Permissions
 
 class NetworkProvider(context: Context, dataset: LiveDataset<MediaLibraryItem>, url: String? = null, val mocked: ArrayList<MediaLibraryItem>? = null): BrowserProvider(context, dataset, url, Medialibrary.SORT_FILENAME, false), Observer<List<MediaWrapper>> {
 
@@ -64,7 +66,7 @@ class NetworkProvider(context: Context, dataset: LiveDataset<MediaLibraryItem>, 
         mediabrowser?.let {
             it.changeEventListener(eventListener)
             if (url != null) it.browse(url.toUri(), getFlags(interact))
-            else it.discoverNetworkShares()
+            else if (context.canAccessLocalNetwork()) it.discoverNetworkShares()
         }
     }
 

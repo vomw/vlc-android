@@ -75,6 +75,7 @@ class EmptyLoadingStateView : FrameLayout {
             field = value
             applyCompactMode()
         }
+    val permissionStates = arrayOf(EmptyLoadingState.MISSING_PERMISSION, EmptyLoadingState.MISSING_LOCAL_NETWORK_PERMISSION, EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION)
     var state = EmptyLoadingState.LOADING
         set(value) {
             compactMode = value  in arrayOf(EmptyLoadingState.EMPTY_SEARCH, EmptyLoadingState.EMPTY, EmptyLoadingState.EMPTY_FAVORITES)
@@ -82,16 +83,17 @@ class EmptyLoadingStateView : FrameLayout {
             loadingFlipper.visibility = if (value == EmptyLoadingState.LOADING) VISIBLE else GONE
             loadingTitle.visibility = if (value == EmptyLoadingState.LOADING) VISIBLE else GONE
             emptyTextView.visibility = if (value in arrayOf(EmptyLoadingState.EMPTY, EmptyLoadingState.EMPTY_SEARCH, EmptyLoadingState.EMPTY_FAVORITES)) VISIBLE else GONE
-            emptyImageView.visibility = if (value in arrayOf(EmptyLoadingState.EMPTY,EmptyLoadingState.MISSING_PERMISSION,EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION, EmptyLoadingState.EMPTY_SEARCH, EmptyLoadingState.EMPTY_FAVORITES)) VISIBLE else GONE
+            emptyImageView.visibility = if (value in arrayOf(EmptyLoadingState.EMPTY,EmptyLoadingState.MISSING_PERMISSION,EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION, EmptyLoadingState.MISSING_LOCAL_NETWORK_PERMISSION, EmptyLoadingState.EMPTY_SEARCH, EmptyLoadingState.EMPTY_FAVORITES)) VISIBLE else GONE
             emptyImageView.setImageBitmap(context.getBitmapFromDrawable(if (value == EmptyLoadingState.EMPTY_FAVORITES) R.drawable.ic_fav_empty else if (value in arrayOf(EmptyLoadingState.EMPTY, EmptyLoadingState.EMPTY_SEARCH, EmptyLoadingState.EMPTY_FAVORITES)) R.drawable.ic_empty else R.drawable.ic_empty_warning))
-            permissionTitle.visibility = if (value in arrayOf(EmptyLoadingState.MISSING_PERMISSION, EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION)) VISIBLE else GONE
-            permissionTextView.visibility = if (value in arrayOf(EmptyLoadingState.MISSING_PERMISSION, EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION)) VISIBLE else GONE
-            grantPermissionButton.visibility = if (value in arrayOf(EmptyLoadingState.MISSING_PERMISSION, EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION)) VISIBLE else GONE
+            permissionTitle.visibility = if (value in permissionStates) VISIBLE else GONE
+            permissionTextView.visibility = if (value in permissionStates) VISIBLE else GONE
+            grantPermissionButton.visibility = if (value in permissionStates) VISIBLE else GONE
             pickFileButton.visibility = if (value in arrayOf(EmptyLoadingState.MISSING_PERMISSION, EmptyLoadingState.MISSING_VIDEO_PERMISSION, EmptyLoadingState.MISSING_AUDIO_PERMISSION) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) VISIBLE else GONE
             noMediaButton.visibility = if (showNoMedia && value == EmptyLoadingState.EMPTY) VISIBLE else if (value == EmptyLoadingState.EMPTY_FAVORITES) INVISIBLE else GONE
             permissionTextView.text = when (state) {
                 EmptyLoadingState.MISSING_VIDEO_PERMISSION -> context.getString(R.string.permission_video)
                 EmptyLoadingState.MISSING_AUDIO_PERMISSION -> context.getString(R.string.permission_audio)
+                EmptyLoadingState.MISSING_LOCAL_NETWORK_PERMISSION -> context.getString(R.string.permission_local_network)
                 else ->
                     buildString {
                         append(context.getString(R.string.permission_expanation_no_allow))
@@ -170,6 +172,15 @@ class EmptyLoadingStateView : FrameLayout {
                         Manifest.permission.READ_MEDIA_IMAGES
                     ), Permissions.FINE_STORAGE_PERMISSION_REQUEST_CODE
                 )
+                EmptyLoadingState.MISSING_LOCAL_NETWORK_PERMISSION ->
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(
+                            context as Activity,
+                            Manifest.permission.ACCESS_LOCAL_NETWORK
+                        )
+                    ) {
+                        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), Permissions.PERMISSION_LOCAL_NETWORK)
+                    } else
+                        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), Permissions.PERMISSION_LOCAL_NETWORK)
 
                 else -> (context as? FragmentActivity)?.askStoragePermission(false, null)
 
@@ -211,5 +222,5 @@ class EmptyLoadingStateView : FrameLayout {
 }
 
 enum class EmptyLoadingState {
-    LOADING, EMPTY, EMPTY_SEARCH, NONE, MISSING_PERMISSION, MISSING_VIDEO_PERMISSION, MISSING_AUDIO_PERMISSION, EMPTY_FAVORITES
+    LOADING, EMPTY, EMPTY_SEARCH, NONE, MISSING_PERMISSION, MISSING_LOCAL_NETWORK_PERMISSION, MISSING_VIDEO_PERMISSION, MISSING_AUDIO_PERMISSION, EMPTY_FAVORITES
 }

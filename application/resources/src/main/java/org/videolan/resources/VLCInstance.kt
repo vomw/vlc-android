@@ -36,6 +36,7 @@ import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.VLCInstance.init
 import org.videolan.resources.util.VLCCrashHandler
 import org.videolan.tools.SingletonHolder
+import org.videolan.tools.canAccessLocalNetwork
 
 object VLCInstance : SingletonHolder<ILibVLC, Context>({ init(it.applicationContext) }) {
     const val TAG = "VLC/UiTools/VLCInstance"
@@ -56,6 +57,7 @@ object VLCInstance : SingletonHolder<ILibVLC, Context>({ init(it.applicationCont
 
         // TODO change LibVLC signature to accept a List instead of an ArrayList
         sLibVLC = libVLCFactory.getFromOptions(ctx, VLCOptions.libOptions)
+        Medialibrary.getInstance().setDiscoverNetworkEnabled(ctx.canAccessLocalNetwork())
         return sLibVLC
     }
 
@@ -64,7 +66,9 @@ object VLCInstance : SingletonHolder<ILibVLC, Context>({ init(it.applicationCont
         sLibVLC.release()
         sLibVLC = libVLCFactory.getFromOptions(AppContextProvider.appContext, VLCOptions.libOptions)
         instance = sLibVLC
+        val context = AppContextProvider.appContext
         Medialibrary.getInstance().setLibVLCInstance((sLibVLC as LibVLC).instance)
+        Medialibrary.getInstance().setDiscoverNetworkEnabled(context.canAccessLocalNetwork())
     }
 
     fun testCompatibleCPU(context: Context): Boolean {

@@ -29,10 +29,26 @@ import kotlinx.coroutines.flow.onEach
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.tools.CoroutineContextProvider
 import org.videolan.tools.NetworkMonitor
+import org.videolan.tools.canAccessLocalNetwork
+import org.videolan.vlc.util.Permissions
 
 class NetworkModel(context: Context, url: String? = null, mocked: ArrayList<MediaLibraryItem>? = null, coroutineContextProvider: CoroutineContextProvider = CoroutineContextProvider()) : BrowserModel(context, url, TYPE_NETWORK,false,  mocked = mocked, coroutineContextProvider = coroutineContextProvider) {
-
+    var networkMonitorLaunched = false
     init {
+        if (context.canAccessLocalNetwork())
+            startNetworkMonitor()
+    }
+
+    override fun refresh() {
+        if (context.canAccessLocalNetwork())
+            startNetworkMonitor()
+        super.refresh()
+    }
+
+    private fun startNetworkMonitor() {
+        if (networkMonitorLaunched) return
+        if (!context.canAccessLocalNetwork()) return
+        networkMonitorLaunched = true
         NetworkMonitor.getInstance(context).connectionFlow.onEach {
             if (it.connected) refresh()
             else dataset.clear()

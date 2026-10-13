@@ -22,27 +22,30 @@ class NetworkMonitor(private val context: Context) : DefaultLifecycleObserver {
     val connected : Boolean
         get() = connectionFlow.value.connected
     val isLan : Boolean
-        get() = connectionFlow.value.run { connected && !mobile }
+        get() = context.canAccessLocalNetwork() && connectionFlow.value.run { connected && !mobile }
     val lanAllowed : Boolean
-        get() = connectionFlow.value.run { connected && (!mobile || vpn) }
+        get() = context.canAccessLocalNetwork() && connectionFlow.value.run { connected && (!mobile || vpn) }
     val receiver = object : BroadcastReceiver() {
-        @SuppressLint("MissingPermission")
         override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                ConnectivityManager.CONNECTIVITY_ACTION -> {
-                    val networkInfo = cm.activeNetworkInfo
-                    val isConnected = networkInfo != null && networkInfo.isConnected
-                    val isMobile = isConnected && networkInfo!!.type == ConnectivityManager.TYPE_MOBILE
-                    val isVPN = isConnected && updateVPNStatus()
-                    connectionFlow.value = Connection(isConnected, isMobile, isVPN)
-                }
-
+            if (intent?.action == ConnectivityManager.CONNECTIVITY_ACTION) {
+                updateConnection()
             }
         }
     }
 
     init {
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this@NetworkMonitor)
+        register()
+    }
+
+    fun register() {
+        val lifecycle = ProcessLifecycleOwner.get().lifecycle
+        stop()
+        lifecycle.removeObserver(this)
+        if (context.canAccessLocalNetwork()) {
+            lifecycle.addObserver(this)
+        } else {
+            connectionFlow.value = Connection(connected = false, mobile = true, vpn = false)
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {
@@ -50,6 +53,16 @@ class NetworkMonitor(private val context: Context) : DefaultLifecycleObserver {
         registered = true
         val networkFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         context.registerReceiver(receiver, networkFilter)
+        updateConnection()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateConnection() {
+        val networkInfo = cm.activeNetworkInfo
+        val isConnected = networkInfo != null && networkInfo.isConnected
+        val isMobile = isConnected && networkInfo!!.type == ConnectivityManager.TYPE_MOBILE
+        val isVPN = isConnected && updateVPNStatus()
+        connectionFlow.value = Connection(isConnected, isMobile, isVPN)
     }
 
     override fun onStop(owner: LifecycleOwner) = stop()
@@ -58,6 +71,7 @@ class NetworkMonitor(private val context: Context) : DefaultLifecycleObserver {
         if (!registered) return
         registered = false
         context.unregisterReceiver(receiver)
+        connectionFlow.value = Connection(connected = false, mobile = true, vpn = false)
     }
 
     protected fun finalize() {

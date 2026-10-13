@@ -28,9 +28,11 @@ import org.videolan.resources.AppContextProvider
 import org.videolan.resources.VLCInstance
 import org.videolan.tools.AppScope
 import org.videolan.tools.NetworkMonitor
+import org.videolan.tools.canAccessLocalNetwork
 import org.videolan.tools.isAppStarted
 import org.videolan.tools.livedata.LiveDataset
 import org.videolan.tools.retry
+import org.videolan.vlc.util.Permissions
 import java.util.*
 
 object RendererDelegate : RendererDiscoverer.EventListener {
@@ -47,6 +49,7 @@ object RendererDelegate : RendererDiscoverer.EventListener {
 
     suspend fun start() {
         if (started) return
+        if (!AppContextProvider.appContext.canAccessLocalNetwork()) return
         val libVlc = withContext(Dispatchers.IO) { VLCInstance.getInstance(AppContextProvider.appContext) }
         started = true
         for (discoverer in RendererDiscoverer.list(libVlc)) {
@@ -65,6 +68,13 @@ object RendererDelegate : RendererDiscoverer.EventListener {
             PlaybackService.renderer.value = null
         }
         clear()
+    }
+
+    fun restart() {
+        stop()
+        AppScope.launch {
+            start()
+        }
     }
 
     private fun clear() {

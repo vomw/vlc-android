@@ -230,6 +230,11 @@ class MainActivity : ContentActivity(),
                 forceRefresh()
             }
         }
+        if (requestCode == Permissions.PERMISSION_LOCAL_NETWORK) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                forceRefresh()
+            }
+        }
     }
 
 
