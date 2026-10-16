@@ -431,8 +431,8 @@
     <string name="enable_swipe_seek_summary">Swipe your finger across the screen to seek</string>
     <string name="enable_scale_gesture_title">Two finger zoom</string>
     <string name="enable_scale_gesture_summary">Zoom in and out with two fingers</string>
-    <string name="popup_keepscreen_title">Keep screen ON in Pop-Up mode</string>
-    <string name="popup_keepscreen_summary">Always keep screen ON while Pop-Up is displayed, even if video is paused.</string>
+    <string name="popup_keepscreen_title">Keep the screen on in floating popup player mode</string>
+    <string name="popup_keepscreen_summary">Always keep the screen on while the floating popup player is visible, even when the video is paused.</string>
     <string name="browser_show_hidden_files_title">Show hidden files</string>
     <string name="albums_show_track_numbers">Show track numbers</string>
     <string name="enable_video_screenshot">Take a screenshot</string>
@@ -738,7 +738,7 @@
     <string name="allow_settings_access_brightness_description">VLC needs you to grant this permission to change your brightness mode.</string>
     <string name="allow_draw_overlays_title">Allow VLC player popup over other apps</string>
     <string name="allow_sdraw_overlays_description">VLC needs you to grant this permission display your video in a popup over other applications.</string>
-    <string name="allow_pip">Allow VLC player to launch the Picture in Picture</string>
+    <string name="allow_pip">Allow VLC to use Picture-in-Picture mode</string>
     <string name="allow_pip_description">VLC needs you to grant this permission to display your video in Picture in Picture mode.</string>
     <string name="permission_ask_again">Grant permission</string>
     <string name="pick_file">Pick a file</string>
@@ -774,8 +774,8 @@
     <string name="encryption_warning">Warning, encryption is not available for this Android version, password will be stored in a private space but not encrypted</string>
     <string name="store_password">Remember password</string>
     <string name="add_to_playlist">Add to playlist</string>
-    <string name="popup_playback_title">Play video in a Pop-Up window</string>
-    <string name="popup_playback">Playing in a Pop-Up window</string>
+    <string name="popup_playback_title">Play video in the floating popup player</string>
+    <string name="popup_playback">Playing in the floating popup player</string>
     <string name="popup_expand">Expand video</string>
     <string name="download_subtitles">Download subtitles</string>
     <string name="powered_opensubtitles">Powered by OpenSubtitles</string>
@@ -923,8 +923,8 @@
     <string name="create">Create</string>
     <string name="resume_card_message">Resume playback of %1$s?</string>
     <string name="misc">Miscellaneous</string>
-    <string name="popup_force_legacy_title">Use custom Picture-in-Picture popup</string>
-    <string name="popup_force_legacy_summary">Use custom Picture-in-Picture resizable popup</string>
+    <string name="popup_force_legacy_title">Use VLC\'s floating popup player</string>
+    <string name="popup_force_legacy_summary">Use VLC\'s resizable floating popup player instead of Android Picture-in-Picture</string>
     <string name="restore_background_video_title">Restore video from background</string>
     <string name="restore_background_video_summary">Restore video from background when reopening VLC for Android</string>
     <string name="device_default">Device default</string>
