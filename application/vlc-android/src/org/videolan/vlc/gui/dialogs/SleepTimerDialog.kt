@@ -72,7 +72,7 @@ class SleepTimerDialog : PickTimeFragment() {
             val interval = settings.getLong(SLEEP_TIMER_DEFAULT_INTERVAL, -1L)
             if (interval > 0) {
                 val hours = (interval / (HOURS_IN_MICROS / 1000)).toString()
-                val minutes = (interval % (HOURS_IN_MICROS / 1000) / (MINUTES_IN_MICROS / 1000)).toString()
+                val minutes = (interval % (HOURS_IN_MICROS / 1000) / (MINUTES_IN_MICROS / 1000)).toString().padStart(2, '0')
                 updateValue("$hours$minutes")
             }
         }
