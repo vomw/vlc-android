@@ -40,4 +40,10 @@
         <item name="android:statusBarColor">@color/onboarding_grey</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
+
+    <style name="Theme.VLC.Transparent.NoUI" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/launch_screen_anim</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+    </style>
+
 </resources>
