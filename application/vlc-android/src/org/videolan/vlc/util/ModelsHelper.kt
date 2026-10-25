@@ -353,3 +353,35 @@ fun getFilenameDescComp(nbOfDigits: Int): Comparator<MediaLibraryItem> = Compara
     filename2?.lowercase(Locale.getDefault()).sanitizeStringForAlphaCompare(nbOfDigits)?.compareTo(filename1?.lowercase(Locale.getDefault()).sanitizeStringForAlphaCompare(nbOfDigits)
             ?: "") ?: -1
 }
+
+fun getLastModifiedAscComp(): Comparator<MediaLibraryItem> = Comparator<MediaLibraryItem> { item1, item2 ->
+    if (Settings.showTvUi && Settings.tvFoldersFirst) {
+        val type1 = (item1 as? MediaWrapper)?.type
+        val type2 = (item2 as? MediaWrapper)?.type
+        if (type1 == MediaWrapper.TYPE_DIR && type2 != MediaWrapper.TYPE_DIR) return@Comparator -1
+        else if (type1 != MediaWrapper.TYPE_DIR && type2 == MediaWrapper.TYPE_DIR) return@Comparator 1
+    }
+    val type1 = (item1 as? MediaWrapper)?.type
+    val type2 = (item2 as? MediaWrapper)?.type
+    if (type1 == MediaWrapper.TYPE_DIR && type2 != MediaWrapper.TYPE_DIR) return@Comparator -1
+    else if (type1 != MediaWrapper.TYPE_DIR && type2 == MediaWrapper.TYPE_DIR) return@Comparator 1
+    val time1 = (item1 as? MediaWrapper)?.lastModified ?: 0L
+    val time2 = (item2 as? MediaWrapper)?.lastModified ?: 0L
+    time1.compareTo(time2)
+}
+
+fun getLastModifiedDescComp(): Comparator<MediaLibraryItem> = Comparator<MediaLibraryItem> { item1, item2 ->
+    if (Settings.showTvUi && Settings.tvFoldersFirst) {
+        val type1 = (item1 as? MediaWrapper)?.type
+        val type2 = (item2 as? MediaWrapper)?.type
+        if (type1 == MediaWrapper.TYPE_DIR && type2 != MediaWrapper.TYPE_DIR) return@Comparator -1
+        else if (type1 != MediaWrapper.TYPE_DIR && type2 == MediaWrapper.TYPE_DIR) return@Comparator 1
+    }
+    val type1 = (item1 as? MediaWrapper)?.type
+    val type2 = (item2 as? MediaWrapper)?.type
+    if (type1 == MediaWrapper.TYPE_DIR && type2 != MediaWrapper.TYPE_DIR) return@Comparator -1
+    else if (type1 != MediaWrapper.TYPE_DIR && type2 == MediaWrapper.TYPE_DIR) return@Comparator 1
+    val time1 = (item1 as? MediaWrapper)?.lastModified ?: 0L
+    val time2 = (item2 as? MediaWrapper)?.lastModified ?: 0L
+    time2.compareTo(time1)
+}

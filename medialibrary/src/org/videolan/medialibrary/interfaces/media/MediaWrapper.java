@@ -297,6 +297,12 @@ public abstract class MediaWrapper extends MediaLibraryItem implements Parcelabl
             mSlaves = media.getSlaves();
         }
         defineType();
+        if (mUri != null && ("file".equalsIgnoreCase(mUri.getScheme()) || mUri.getScheme() == null) && mUri.getPath() != null) {
+            java.io.File file = new java.io.File(mUri.getPath());
+            if (file.exists()) {
+                mLastModified = file.lastModified();
+            }
+        }
     }
 
     private void defineType() {

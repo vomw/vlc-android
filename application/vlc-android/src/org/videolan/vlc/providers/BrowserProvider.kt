@@ -78,6 +78,8 @@ import org.videolan.vlc.util.getFilenameAscComp
 import org.videolan.vlc.util.getFilenameDescComp
 import org.videolan.vlc.util.getTvAscComp
 import org.videolan.vlc.util.getTvDescComp
+import org.videolan.vlc.util.getLastModifiedAscComp
+import org.videolan.vlc.util.getLastModifiedDescComp
 import org.videolan.vlc.util.isBrowserMedia
 import org.videolan.vlc.util.isMedia
 import java.io.File
@@ -105,6 +107,7 @@ abstract class BrowserProvider(val context: Context, val dataset: LiveDataset<Me
         Settings.showTvUi && sort == Medialibrary.SORT_ALPHA && !desc -> false
         sort == Medialibrary.SORT_ALPHA && desc -> false
         sort == Medialibrary.SORT_ALPHA && !desc -> false
+        sort == Medialibrary.SORT_LASTMODIFICATIONDATE -> false
         (sort == Medialibrary.SORT_FILENAME || sort == Medialibrary.SORT_DEFAULT) && desc -> true
         else -> true
     }
@@ -114,6 +117,8 @@ abstract class BrowserProvider(val context: Context, val dataset: LiveDataset<Me
             url != null && url.toUri().scheme == "upnp" -> null
             sort == Medialibrary.SORT_ALPHA && desc -> descComp
             sort == Medialibrary.SORT_ALPHA && !desc -> ascComp
+            sort == Medialibrary.SORT_LASTMODIFICATIONDATE && desc -> getLastModifiedDescComp()
+            sort == Medialibrary.SORT_LASTMODIFICATIONDATE && !desc -> getLastModifiedAscComp()
             (sort == Medialibrary.SORT_FILENAME || sort == Medialibrary.SORT_DEFAULT) && desc -> getFilenameDescComp(nbOfDigits)
             else -> getFilenameAscComp(nbOfDigits)
         }
